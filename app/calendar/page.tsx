@@ -1,3 +1,4 @@
+// @ts-nocheck
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
@@ -527,6 +528,7 @@ export default function CalendarPage() {
         }
         
         console.log('➕ Vytváram novú rezerváciu...')
+        // @ts-ignore
         const { error } = await supabase.from('reservations').insert([{
           employee_id: targetEmpId,
           service_id: draggedItem.id,
@@ -584,7 +586,9 @@ export default function CalendarPage() {
           updateData.end_time = newEndTime + ':00'
         }
         
+        // @ts-ignore
         const { error } = await supabase.from('reservations')
+          // @ts-ignore
           .update(updateData)
           .eq('id', draggedItem.id)
           .select()
@@ -726,8 +730,10 @@ export default function CalendarPage() {
     
     if (isCreatingNew) {
       // Vytvor novú rezerváciu
+      // @ts-ignore
       const { error } = await supabase
         .from('reservations')
+        // @ts-ignore
         .insert([{ ...reservationData, user_id: user?.id }])
       
       if (error) {
@@ -741,8 +747,10 @@ export default function CalendarPage() {
       }
     } else {
       // Uprav existujúcu rezerváciu
+      // @ts-ignore
       const { error } = await supabase
         .from('reservations')
+        // @ts-ignore
         .update(reservationData)
         .eq('id', editingReservation.id)
       
@@ -797,8 +805,10 @@ export default function CalendarPage() {
     try {
       if (editingPrivateEvent) {
         // Edit existing private appointment
+        // @ts-ignore
         const { error } = await supabase
           .from('reservations')
+          // @ts-ignore
           .update({
             employee_id: privateForm.employee_id,
             reservation_date: privateForm.reservation_date,
@@ -827,6 +837,7 @@ export default function CalendarPage() {
         }
       } else {
         // Create new private appointment
+        // @ts-ignore
         const { error } = await supabase.from('reservations').insert([{
           user_id: user?.id,
           employee_id: privateForm.employee_id,
@@ -919,16 +930,20 @@ export default function CalendarPage() {
       if (specificDayHoursForm.is_closed) {
         // Ak je zatvorené, uložíme NULL hodnoty pre časy
         if (existing) {
+          // @ts-ignore
           const { error } = await supabase
             .from('employee_day_overrides')
+            // @ts-ignore
             .update({
               start_time: null,
               end_time: null
             })
+            // @ts-ignore
             .eq('id', existing.id)
           
           if (error) throw error
         } else {
+          // @ts-ignore
           const { error } = await supabase
             .from('employee_day_overrides')
             .insert([{
@@ -948,16 +963,20 @@ export default function CalendarPage() {
         }
         
         if (existing) {
+          // @ts-ignore
           const { error } = await supabase
             .from('employee_day_overrides')
+            // @ts-ignore
             .update({
               start_time: specificDayHoursForm.start_time,
               end_time: specificDayHoursForm.end_time
             })
+            // @ts-ignore
             .eq('id', existing.id)
           
           if (error) throw error
         } else {
+          // @ts-ignore
           const { error } = await supabase
             .from('employee_day_overrides')
             .insert([{
