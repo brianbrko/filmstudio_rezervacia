@@ -56,6 +56,8 @@ export default function DashboardPage() {
     message: ''
   })
   
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  
   const showNotification = (type: 'error' | 'success' | 'warning' | 'info', message: string, title?: string) => {
     setNotification({ show: true, type, message, title })
     setTimeout(() => {
@@ -344,16 +346,16 @@ export default function DashboardPage() {
       </div>
       
       {notification.show && (
-        <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
+        <div className="fixed top-4 right-4 z-[9999] animate-slide-in-right max-w-[90vw] sm:max-w-md">
           <div className={`
-            max-w-md rounded-xl shadow-2xl border-4 p-5 
+            rounded-xl shadow-2xl border-4 p-4 sm:p-5 
             ${notification.type === 'error' ? 'bg-red-500 border-red-700' : ''}
             ${notification.type === 'success' ? 'bg-green-500 border-green-700' : ''}
             ${notification.type === 'warning' ? 'bg-yellow-500 border-yellow-700' : ''}
             ${notification.type === 'info' ? 'bg-blue-500 border-blue-700' : ''}
           `}>
-            <div className="flex items-start gap-3">
-              <div className="text-3xl">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className="text-2xl sm:text-3xl">
                 {notification.type === 'error' && '❌'}
                 {notification.type === 'success' && '✅'}
                 {notification.type === 'warning' && '⚠️'}
@@ -361,18 +363,17 @@ export default function DashboardPage() {
               </div>
               <div className="flex-1">
                 {notification.title && (
-                  <div className="font-bold text-lg text-white mb-1">
+                  <div className="font-bold text-base sm:text-lg text-white mb-1">
                     {notification.title}
                   </div>
                 )}
-                <div className="text-white">
+                <div className="text-white text-sm sm:text-base">
                   {notification.message}
                 </div>
               </div>
               <button 
                 onClick={() => setNotification(prev => ({ ...prev, show: false }))}
-                className="text-white hover:text-gray-200 text-2xl leading-none"
-              >
+                className="text-white hover:text-gray-200 text-xl sm:text-2xl leading-none">
                 ×
               </button>
             </div>
@@ -380,41 +381,41 @@ export default function DashboardPage() {
         </div>
       )}
       
-      <div className="bg-gray-900 text-white p-6 border-b-2 border-amber-500/30 relative z-10">
-        <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
+      <div className="bg-gray-900 text-white p-4 sm:p-6 border-b-2 border-amber-500/30 relative z-10">
+        <div className="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             <Image 
               src="/images/logo.png" 
               alt="Art Studio Logo" 
               width={80} 
               height={80}
-              className="object-contain"
+              className="object-contain w-16 h-16 sm:w-20 sm:h-20"
             />
             <div>
-              <p className="text-gray-300 text-lg">{profile?.full_name}</p>
+              <p className="text-gray-300 text-base sm:text-lg">{profile?.full_name}</p>
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap justify-center gap-2 sm:gap-4 w-full sm:w-auto">
             <button 
               onClick={() => router.push('/reservations')} 
-              className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
-              📋 Moje rezervácie
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold text-sm sm:text-base hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
+              📋 Rezervácie
             </button>
-            <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
+            <button onClick={() => router.push('/profile')} className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold text-sm sm:text-base border-2 border-amber-500/50 hover:bg-gray-600">
               👤 Profil
             </button>
-            <button onClick={() => {supabase.auth.signOut(); router.push('/login')}} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
+            <button onClick={() => setShowLogoutModal(true)} className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold text-sm sm:text-base border-2 border-amber-500/50 hover:bg-gray-600">
               Odhlásiť
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6 relative z-10">
+      <div className="max-w-6xl mx-auto p-4 sm:p-6 relative z-10">
         <div className="grid lg:grid-cols-[1fr] gap-6">
           {/* Filtre v jednom riadku */}
-          <div className="bg-gray-800 text-white rounded-2xl p-6 border-2 border-amber-500/30">
-            <div className="grid md:grid-cols-3 gap-4">
+          <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 border-amber-500/30">
+            <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {/* Dátum */}
               <div className="relative" ref={datePickerRef}>
                 <label className="block font-bold mb-2">📅 Dátum</label>
@@ -477,21 +478,21 @@ export default function DashboardPage() {
                           date.setMonth(date.getMonth() + 1)
                           setSelectedDate(date.toISOString().split('T')[0])
                         }}
-                        className="p-2 hover:bg-amber-500/20 rounded-lg font-bold text-xl text-white"
+                        className="p-1 sm:p-2 hover:bg-amber-500/20 rounded-lg font-bold text-lg sm:text-xl text-white"
                       >
                         →
                       </button>
                     </div>
                     
-                    <div className="grid grid-cols-7 gap-1 mb-2">
+                    <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-2">
                       {['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'].map(day => (
-                        <div key={day} className="text-center text-xs font-bold text-gray-400 p-1">
+                        <div key={day} className="text-center text-[10px] sm:text-xs font-bold text-gray-400 p-0.5 sm:p-1">
                           {day}
                         </div>
                       ))}
                     </div>
                     
-                    <div className="grid grid-cols-7 gap-1">
+                    <div className="grid grid-cols-7 gap-0.5 sm:gap-1">
                       {(() => {
                         const current = new Date(selectedDate + 'T00:00:00')
                         const year = current.getFullYear()
@@ -523,7 +524,7 @@ export default function DashboardPage() {
                                 }
                               }}
                               disabled={isPast}
-                              className={`p-2 text-center rounded-lg font-medium transition-colors ${
+                              className={`p-1 sm:p-2 text-center rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                                 isPast
                                   ? 'text-gray-600 cursor-not-allowed'
                                   : isSelected 
@@ -547,7 +548,7 @@ export default function DashboardPage() {
                         setSelectedDate(new Date().toISOString().split('T')[0])
                         setShowDatePicker(false)
                       }}
-                      className="w-full mt-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg font-bold transition-colors border border-amber-500/50"
+                      className="w-full mt-2 sm:mt-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg font-bold transition-colors border border-amber-500/50 text-sm sm:text-base"
                     >
                       Dnes
                     </button>
@@ -557,21 +558,21 @@ export default function DashboardPage() {
 
               {/* Služba */}
               <div className="relative" ref={serviceDropdownRef}>
-                <label className="block font-bold mb-2">✂️ Služba</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">✂️ Služba</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowServiceDropdown(!showServiceDropdown)
                     setShowEmployeeDropdown(false)
                   }}
-                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center"
+                  className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center text-sm sm:text-base"
                 >
                   <span className={selectedService ? 'text-white' : 'text-gray-400'}>
                     {selectedService 
                       ? services.find(s => s.id === selectedService)?.name + ` - ${services.find(s => s.id === selectedService)?.price}€`
                       : '-- Vyberte službu --'}
                   </span>
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -584,7 +585,7 @@ export default function DashboardPage() {
                         setSelectedService('')
                         setShowServiceDropdown(false)
                       }}
-                      className="p-3 hover:bg-gray-100 cursor-pointer border-b-2 border-gray-200 text-gray-500 font-medium"
+                      className="p-2 sm:p-3 hover:bg-gray-100 cursor-pointer border-b-2 border-gray-200 text-gray-500 font-medium text-sm sm:text-base"
                     >
                       -- Vyberte službu --
                     </div>
@@ -596,12 +597,12 @@ export default function DashboardPage() {
                           setSelectedService(service.id)
                           setShowServiceDropdown(false)
                         }}
-                        className={`p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors ${
+                        className={`p-2 sm:p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors ${
                           selectedService === service.id ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold' : 'text-white'
                         }`}
                       >
-                        <p className="font-bold">{service.name}</p>
-                        <p className={`text-sm ${selectedService === service.id ? 'text-white/80' : 'text-gray-400'}`}>od {service.price}€ • {service.duration_minutes} min</p>
+                        <p className="font-bold text-sm sm:text-base">{service.name}</p>
+                        <p className={`text-xs sm:text-sm ${selectedService === service.id ? 'text-white/80' : 'text-gray-400'}`}>od {service.price}€ • {service.duration_minutes} min</p>
                       </div>
                     ))}
                   </div>
@@ -610,21 +611,21 @@ export default function DashboardPage() {
 
               {/* Zamestnankyňa */}
               <div className="relative" ref={employeeDropdownRef}>
-                <label className="block font-bold mb-2">💇‍♀️ Zamestnankyňa</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">💇‍♀️ Zamestnankyňa</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
                     setShowEmployeeDropdown(!showEmployeeDropdown)
                     setShowServiceDropdown(false)
                   }}
-                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center text-white"
+                  className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center text-white text-sm sm:text-base"
                 >
                   <span>
                     {selectedEmployee === 'any' 
                       ? '✨ Je mi jedno'
                       : employees.find(e => e.id === selectedEmployee)?.name}
                   </span>
-                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -637,7 +638,7 @@ export default function DashboardPage() {
                         setSelectedEmployee('any')
                         setShowEmployeeDropdown(false)
                       }}
-                      className={`p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 transition-colors font-bold ${
+                      className={`p-2 sm:p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 transition-colors font-bold text-sm sm:text-base ${
                         selectedEmployee === 'any' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white' : 'text-white'
                       }`}
                     >
@@ -651,7 +652,7 @@ export default function DashboardPage() {
                           setSelectedEmployee(emp.id)
                           setShowEmployeeDropdown(false)
                         }}
-                        className={`p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors ${
+                        className={`p-2 sm:p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors text-sm sm:text-base ${
                           selectedEmployee === emp.id ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold' : 'text-white'
                         }`}
                       >
@@ -665,37 +666,37 @@ export default function DashboardPage() {
           </div>
 
           {/* Voľné časy */}
-          <div className="bg-gray-800 text-white rounded-2xl p-6 border-2 border-amber-500/30">
-            <h2 className="text-2xl font-bold mb-6">🕐 Dostupné termíny</h2>
+          <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 border-amber-500/30">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">🕐 Dostupné termíny</h2>
             
             {!selectedService ? (
-              <div className="text-center py-12">
-                <p className="text-2xl mb-2">👈</p>
-                <p className="text-gray-400">Najprv vyberte službu</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-xl sm:text-2xl mb-2">👈</p>
+                <p className="text-gray-400 text-sm sm:text-base">Najprv vyberte službu</p>
               </div>
             ) : availableSlots.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-4xl mb-4">😔</p>
-                <p className="text-xl font-bold mb-2 text-white">Žiadne voľné termíny</p>
-                <p className="text-gray-400">Skúste iný deň alebo zamestnankyňu</p>
+              <div className="text-center py-8 sm:py-12">
+                <p className="text-3xl sm:text-4xl mb-3 sm:mb-4">😔</p>
+                <p className="text-lg sm:text-xl font-bold mb-2 text-white">Žiadne voľné termíny</p>
+                <p className="text-gray-400 text-sm sm:text-base">Skúste iný deň alebo zamestnankyňu</p>
               </div>
             ) : (
               <>
-                <div className="mb-4 p-4 bg-amber-500/10 rounded-lg border-2 border-amber-500/30">
-                  <p className="font-bold text-white">📋 Vybraná služba:</p>
-                  <p className="text-lg text-gray-300">{selectedServiceData?.name} - {selectedServiceData?.price}€ ({selectedServiceData?.duration_minutes} min)</p>
+                <div className="mb-3 sm:mb-4 p-3 sm:p-4 bg-amber-500/10 rounded-lg border-2 border-amber-500/30">
+                  <p className="font-bold text-white text-sm sm:text-base">📋 Vybraná služba:</p>
+                  <p className="text-base sm:text-lg text-gray-300">{selectedServiceData?.name} - {selectedServiceData?.price}€ ({selectedServiceData?.duration_minutes} min)</p>
                 </div>
                 
-                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
+                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2 sm:gap-3">
                   {availableSlots.map((slot, idx) => (
                     <button
                       key={idx}
                       onClick={() => handleSlotClick(slot)}
-                      className="p-4 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 border-2 border-amber-400 rounded-lg hover:from-amber-500 hover:to-amber-700 transition-all text-white shadow-lg hover:shadow-xl hover:scale-105"
+                      className="p-3 sm:p-4 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 border-2 border-amber-400 rounded-lg hover:from-amber-500 hover:to-amber-700 transition-all text-white shadow-lg hover:shadow-xl hover:scale-105"
                     >
-                      <p className="font-bold text-lg">{slot.time}</p>
+                      <p className="font-bold text-base sm:text-lg">{slot.time}</p>
                       {selectedEmployee === 'any' && (
-                        <p className="text-xs text-white/80 mt-1">{slot.employee_name}</p>
+                        <p className="text-[10px] sm:text-xs text-white/80 mt-1 truncate">{slot.employee_name}</p>
                       )}
                     </button>
                   ))}
@@ -709,101 +710,134 @@ export default function DashboardPage() {
       {/* Booking Modal */}
       {showBookingModal && selectedSlot && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-gray-800 text-white rounded-2xl p-6 max-w-2xl w-full border-2 border-amber-500/50 shadow-2xl">
-            <h2 className="text-2xl font-bold mb-6">✅ Potvrdenie rezervácie</h2>
+          <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 max-w-2xl w-full border-2 border-amber-500/50 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">✅ Potvrdenie rezervácie</h2>
             
-            <div className="bg-amber-500/10 p-4 rounded-lg mb-6 border-2 border-amber-500/30">
+            <div className="bg-amber-500/10 p-3 sm:p-4 rounded-lg mb-4 sm:mb-6 border-2 border-amber-500/30 text-sm sm:text-base">
               <p><strong>Dátum:</strong> {new Date(selectedDate + 'T00:00:00').toLocaleDateString('sk-SK')}</p>
               <p><strong>Čas:</strong> {selectedSlot.time}</p>
               <p><strong>Služba:</strong> {selectedServiceData?.name} ({selectedServiceData?.price}€)</p>
               <p><strong>Zamestnankyňa:</strong> {selectedSlot.employee_name}</p>
             </div>
 
-            <form onSubmit={handleBooking} className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+            <form onSubmit={handleBooking} className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block font-bold mb-2">Titul</label>
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Titul</label>
                   <select
                     value={bookingForm.title}
                     onChange={(e) => setBookingForm({...bookingForm, title: e.target.value})}
-                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white text-sm sm:text-base"
                   >
                     <option>Pán</option>
                     <option>Pani</option>
                   </select>
                 </div>
                 <div>
-                  <label className="block font-bold mb-2">Telefón *</label>
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Telefón *</label>
                   <input
                     type="tel"
                     value={bookingForm.phone}
                     onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                   />
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block font-bold mb-2">Meno *</label>
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Meno *</label>
                   <input
                     type="text"
                     value={bookingForm.first_name}
                     onChange={(e) => setBookingForm({...bookingForm, first_name: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold mb-2">Priezvisko *</label>
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Priezvisko *</label>
                   <input
                     type="text"
                     value={bookingForm.last_name}
                     onChange={(e) => setBookingForm({...bookingForm, last_name: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold mb-2">Email *</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">Email *</label>
                 <input
                   type="email"
                   value={bookingForm.email}
                   onChange={(e) => setBookingForm({...bookingForm, email: e.target.value})}
                   required
-                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
+                  className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                 />
               </div>
 
               <div>
-                <label className="block font-bold mb-2">Poznámka</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">Poznámka</label>
                 <textarea
                   value={bookingForm.notes}
                   onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
-                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
+                  className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                   rows={3}
                 />
               </div>
 
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row gap-3 mt-4 sm:mt-6">
                 <button
                   type="button"
                   onClick={() => setShowBookingModal(false)}
-                  className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-gray-600"
+                  className="flex-1 px-4 py-2 sm:px-6 sm:py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-gray-600 text-sm sm:text-base"
                 >
                   Zrušiť
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30"
+                  className="flex-1 px-4 py-2 sm:px-6 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30 text-sm sm:text-base"
                 >
                   ✅ Potvrdiť rezerváciu
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-amber-500/50 shadow-2xl shadow-amber-500/20">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
+              <p className="text-gray-300">
+                Naozaj sa chcete odhlásiť zo svojho účtu?
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-gray-600"
+              >
+                Zrušiť
+              </button>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut()
+                  router.push('/login')
+                }}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30"
+              >
+                ✅ Áno, odhlásiť
+              </button>
+            </div>
           </div>
         </div>
       )}

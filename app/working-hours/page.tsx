@@ -39,6 +39,8 @@ export default function WorkingHoursPage() {
     message: string
     title?: string
   }>({ show: false, type: 'info', message: '' })
+  
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   const showNotification = (
     type: 'error' | 'success' | 'warning' | 'info',
@@ -289,9 +291,9 @@ export default function WorkingHoursPage() {
           notification.type === 'success' ? 'bg-green-500' :
           notification.type === 'warning' ? 'bg-yellow-500' :
           'bg-blue-500'
-        } text-white px-6 py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-md`}>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">
+        } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
+          <div className="flex items-start gap-2 sm:gap-3">
+            <span className="text-xl sm:text-2xl">
               {notification.type === 'error' ? '❌' :
                notification.type === 'success' ? '✅' :
                notification.type === 'warning' ? '⚠️' :
@@ -299,13 +301,13 @@ export default function WorkingHoursPage() {
             </span>
             <div className="flex-1">
               {notification.title && (
-                <div className="font-bold text-lg mb-1">{notification.title}</div>
+                <div className="font-bold text-base sm:text-lg mb-1">{notification.title}</div>
               )}
-              <div className="font-medium">{notification.message}</div>
+              <div className="font-medium text-sm sm:text-base">{notification.message}</div>
             </div>
             <button 
               onClick={() => setNotification({ show: false, type: 'info', message: '' })}
-              className="text-white hover:text-gray-200 text-xl font-bold leading-none">
+              className="text-white hover:text-gray-200 text-lg sm:text-xl font-bold leading-none">
               ×
             </button>
           </div>
@@ -314,19 +316,19 @@ export default function WorkingHoursPage() {
 
       {/* Confirmation Modal */}
       {confirmModal.show && (
-        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white text-black rounded-2xl p-8 max-w-md w-full mx-4 border-4 border-black shadow-2xl">
-            <h3 className="text-2xl font-bold mb-4">{confirmModal.title}</h3>
-            <p className="text-gray-700 mb-6 text-lg">{confirmModal.message}</p>
-            <div className="flex gap-4">
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50 p-4">
+          <div className="bg-white text-black rounded-2xl p-4 sm:p-8 max-w-md w-full border-2 sm:border-4 border-black shadow-2xl">
+            <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{confirmModal.title}</h3>
+            <p className="text-gray-700 mb-4 sm:mb-6 text-base sm:text-lg">{confirmModal.message}</p>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <button
                 onClick={handleConfirmAction}
-                className="flex-1 px-6 py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600">
+                className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 text-sm sm:text-base">
                 Áno, zmazať
               </button>
               <button
                 onClick={handleCancelConfirmation}
-                className="flex-1 px-6 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400">
+                className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 text-sm sm:text-base">
                 Zrušiť
               </button>
             </div>
@@ -335,21 +337,21 @@ export default function WorkingHoursPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white text-black p-6 border-b-4 border-black">
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
+      <div className="bg-white text-black p-4 sm:p-6 border-b-2 sm:border-b-4 border-black">
+        <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
-            <h1 className="text-3xl font-bold">⏰ Správa pracovných hodín</h1>
-            <p className="text-gray-600">Admin panel - {profile?.full_name}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">⏰ Správa pracovných hodín</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
             <button 
               onClick={() => router.push('/calendar')} 
-              className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-sm sm:text-base">
               📅 Kalendár
             </button>
             <button 
-              onClick={() => {supabase.auth.signOut(); router.push('/login')}} 
-              className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+              onClick={() => setShowLogoutModal(true)} 
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm sm:text-base">
               Odhlásiť
             </button>
           </div>
@@ -366,20 +368,20 @@ export default function WorkingHoursPage() {
           </div>
         )}
         
-        <div className="flex gap-4 mb-6">
+        <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
           <button
             onClick={() => setActiveTab('default')}
-            className={`px-6 py-3 rounded-lg font-bold ${activeTab === 'default' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'default' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
             🏪 Otváracie hodiny
           </button>
           <button
             onClick={() => setActiveTab('employees')}
-            className={`px-6 py-3 rounded-lg font-bold ${activeTab === 'employees' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
-            👥 Pracovné hodiny zamestnankýň
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'employees' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            👥 Pracovné hodiny zamestnankyň
           </button>
           <button
             onClick={() => setActiveTab('special')}
-            className={`px-6 py-3 rounded-lg font-bold ${activeTab === 'special' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'special' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
             📆 Špeciálne dni
           </button>
         </div>
@@ -408,25 +410,27 @@ export default function WorkingHoursPage() {
                 if (!hour) return null
 
                 return (
-                  <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
-                    <div className="w-32 font-bold">{day}</div>
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                    <div className="w-full sm:w-32 font-bold text-sm sm:text-base">{day}</div>
                     
-                    <span className="text-gray-600">Od:</span>
-                    <input
-                      type="time"
-                      value={hour.start_time}
-                      onChange={(e) => updateDefaultHours(index, 'start_time', e.target.value)}
-                      disabled={profile?.role === 'employee'}
-                      className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
-                    />
-                    <span className="text-gray-600">Do:</span>
-                    <input
-                      type="time"
-                      value={hour.end_time}
-                      onChange={(e) => updateDefaultHours(index, 'end_time', e.target.value)}
-                      disabled={profile?.role === 'employee'}
-                      className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
-                    />
+                    <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
+                      <span className="text-gray-600 text-xs sm:text-sm">Od:</span>
+                      <input
+                        type="time"
+                        value={hour.start_time}
+                        onChange={(e) => updateDefaultHours(index, 'start_time', e.target.value)}
+                        disabled={profile?.role === 'employee'}
+                        className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
+                      />
+                      <span className="text-gray-600 text-xs sm:text-sm">Do:</span>
+                      <input
+                        type="time"
+                        value={hour.end_time}
+                        onChange={(e) => updateDefaultHours(index, 'end_time', e.target.value)}
+                        disabled={profile?.role === 'employee'}
+                        className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
+                      />
+                    </div>
                   </div>
                 )
               })}
@@ -440,12 +444,12 @@ export default function WorkingHoursPage() {
             <h2 className="text-2xl font-bold mb-6">Pracovné hodiny zamestnankýň</h2>
             
             {/* Select employee */}
-            <div className="mb-6">
-              <label className="block font-bold mb-2">Vyberte zamestnankyu:</label>
+            <div className="mb-4 sm:mb-6">
+              <label className="block font-bold mb-2 text-sm sm:text-base">Vyberte zamestnankyu:</label>
               <select
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium">
+                className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base">
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>{emp.name} - {emp.position}</option>
                 ))}
@@ -459,38 +463,38 @@ export default function WorkingHoursPage() {
                 const defaultHour = defaultHours.find(h => h.day_of_week === index)
 
                 return (
-                  <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
-                    <div className="w-32 font-bold">{day}</div>
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                    <div className="w-full sm:w-32 font-bold text-sm sm:text-base">{day}</div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer">
+                    <label className="flex items-center gap-2 cursor-pointer text-sm sm:text-base">
                       <input
                         type="checkbox"
                         checked={hour?.is_working ?? defaultHour?.is_open ?? true}
                         onChange={(e) => updateEmployeeHours(index, 'is_working', e.target.checked)}
                         disabled={profile?.role === 'employee'}
-                        className="w-5 h-5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
                       />
                       <span>Pracuje</span>
                     </label>
 
                     {(hour?.is_working ?? defaultHour?.is_open ?? true) && (
-                      <>
+                      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
                         <input
                           type="time"
                           value={hour?.start_time || defaultHour?.start_time || '08:00'}
                           onChange={(e) => updateEmployeeHours(index, 'start_time', e.target.value)}
                           disabled={profile?.role === 'employee'}
-                          className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
+                          className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
                         />
-                        <span>-</span>
+                        <span className="text-xs sm:text-sm">-</span>
                         <input
                           type="time"
                           value={hour?.end_time || defaultHour?.end_time || '18:00'}
                           onChange={(e) => updateEmployeeHours(index, 'end_time', e.target.value)}
                           disabled={profile?.role === 'employee'}
-                          className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
+                          className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
                         />
-                      </>
+                      </div>
                     )}
                   </div>
                 )
@@ -518,16 +522,16 @@ export default function WorkingHoursPage() {
 
             {/* Add form */}
             {showAddSpecial && (
-              <form onSubmit={addSpecialDay} className="mb-6 p-6 bg-gray-50 rounded-lg border-2 border-gray-900">
-                <div className="grid grid-cols-2 gap-4">
+              <form onSubmit={addSpecialDay} className="mb-6 p-4 sm:p-6 bg-gray-50 rounded-lg border-2 border-gray-900">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block font-bold mb-2">Dátum *</label>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Dátum *</label>
                     <input
                       type="date"
                       value={specialForm.date}
                       onChange={(e) => setSpecialForm({...specialForm, date: e.target.value})}
                       required
-                      className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
                     />
                   </div>
 
@@ -536,52 +540,52 @@ export default function WorkingHoursPage() {
                       type="checkbox"
                       checked={specialForm.is_closed}
                       onChange={(e) => setSpecialForm({...specialForm, is_closed: e.target.checked})}
-                      className="w-5 h-5"
+                      className="w-4 h-4 sm:w-5 sm:h-5"
                     />
-                    <label className="font-bold">Zatvorené</label>
+                    <label className="font-bold text-sm sm:text-base">Zatvorené</label>
                   </div>
                 </div>
 
                 {!specialForm.is_closed && (
-                  <div className="grid grid-cols-2 gap-4 mt-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
                     <div>
-                      <label className="block font-bold mb-2">Od</label>
+                      <label className="block font-bold mb-2 text-sm sm:text-base">Od</label>
                       <input
                         type="time"
                         value={specialForm.start_time}
                         onChange={(e) => setSpecialForm({...specialForm, start_time: e.target.value})}
-                        className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                        className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
                       />
                     </div>
 
                     <div>
-                      <label className="block font-bold mb-2">Do</label>
+                      <label className="block font-bold mb-2 text-sm sm:text-base">Do</label>
                       <input
                         type="time"
                         value={specialForm.end_time}
                         onChange={(e) => setSpecialForm({...specialForm, end_time: e.target.value})}
-                        className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                        className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
                       />
                     </div>
                   </div>
                 )}
 
-                <div className="mt-4">
-                  <label className="block font-bold mb-2">Poznámka</label>
+                <div className="mt-3 sm:mt-4">
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Poznámka</label>
                   <input
                     type="text"
                     value={specialForm.note}
                     onChange={(e) => setSpecialForm({...specialForm, note: e.target.value})}
                     placeholder="Napr. Vianočné sviatky"
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
                   />
                 </div>
 
-                <div className="flex gap-4 mt-4">
-                  <button type="submit" className="px-6 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
+                  <button type="submit" className="px-4 sm:px-6 py-2 sm:py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm sm:text-base">
                     Uložiť
                   </button>
-                  <button type="button" onClick={() => setShowAddSpecial(false)} className="px-6 py-3 bg-gray-300 rounded-lg font-bold hover:bg-gray-400">
+                  <button type="button" onClick={() => setShowAddSpecial(false)} className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 rounded-lg font-bold hover:bg-gray-400 text-sm sm:text-base">
                     Zrušiť
                   </button>
                 </div>
@@ -614,6 +618,36 @@ export default function WorkingHoursPage() {
           </div>
         )}
       </div>
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white text-black rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-black max-w-md w-full shadow-2xl">
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-700">Naozaj sa chcete odhlásiť?</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-white text-black border-2 border-black rounded-xl sm:rounded-2xl hover:bg-gray-100 transition-all"
+              >
+                Zrušiť
+              </button>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut()
+                  router.push('/login')
+                }}
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-black text-white rounded-xl sm:rounded-2xl hover:bg-gray-800 transition-all"
+              >
+                Áno, odhlásiť
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

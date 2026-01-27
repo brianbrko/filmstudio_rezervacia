@@ -3,7 +3,7 @@ import Image from 'next/image'
 
 export default function Home() {
   return (
-    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-8 relative overflow-hidden">
+    <main className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center p-4 sm:p-8 relative overflow-hidden">
       {/* Animated wave background - TOP */}
       <div className="absolute inset-0 z-0">
         <svg className="absolute top-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '30%', transform: 'rotate(180deg)'}}>

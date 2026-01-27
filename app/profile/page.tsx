@@ -25,6 +25,8 @@ export default function ProfilePage() {
     message: string
     title?: string
   }>({ show: false, type: 'info', message: '' })
+  
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   const showNotification = (
     type: 'error' | 'success' | 'warning' | 'info',
@@ -161,9 +163,9 @@ export default function ProfilePage() {
           notification.type === 'success' ? 'bg-green-500' :
           notification.type === 'warning' ? 'bg-yellow-500' :
           'bg-blue-500'
-        } text-white px-6 py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-md`}>
-          <div className="flex items-start gap-3">
-            <span className="text-2xl">
+        } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
+          <div className="flex items-start gap-2 sm:gap-3">
+            <span className="text-xl sm:text-2xl">
               {notification.type === 'error' ? '❌' :
                notification.type === 'success' ? '✅' :
                notification.type === 'warning' ? '⚠️' :
@@ -171,13 +173,13 @@ export default function ProfilePage() {
             </span>
             <div className="flex-1">
               {notification.title && (
-                <div className="font-bold text-lg mb-1">{notification.title}</div>
+                <div className="font-bold text-base sm:text-lg mb-1">{notification.title}</div>
               )}
-              <div className="font-medium">{notification.message}</div>
+              <div className="font-medium text-sm sm:text-base">{notification.message}</div>
             </div>
             <button 
               onClick={() => setNotification({ show: false, type: 'info', message: '' })}
-              className="text-white hover:text-gray-200 text-xl font-bold leading-none">
+              className="text-white hover:text-gray-200 text-lg sm:text-xl font-bold leading-none">
               ×
             </button>
           </div>
@@ -185,15 +187,15 @@ export default function ProfilePage() {
       )}
 
       {/* Header */}
-      <div className="bg-gray-900 text-white p-6 border-b-2 border-amber-500/30 relative z-10">
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
-          <div className="flex items-center gap-4">
-            <img src="/images/logo.png" alt="Logo" className="w-16 h-16 object-contain" />
+      <div className="bg-gray-900 text-white p-4 sm:p-6 border-b-2 border-amber-500/30 relative z-10">
+        <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <img src="/images/logo.png" alt="Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain" />
             <div>
-              <p className="text-gray-300">{profile?.full_name} {profile?.role === 'admin' && '(👑 Admin)'}</p>
+              <p className="text-sm sm:text-base text-gray-300">{profile?.full_name} {profile?.role === 'admin' && '(👑 Admin)'}</p>
             </div>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
             <button 
               onClick={() => {
                 if (profile?.role === 'customer') {
@@ -202,19 +204,19 @@ export default function ProfilePage() {
                   router.push('/calendar')
                 }
               }} 
-              className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20 text-sm sm:text-base">
               📅 Kalendár
             </button>
             {profile?.role === 'customer' && (
               <button 
                 onClick={() => router.push('/reservations')} 
-                className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
-                📋 Moje rezervácie
+                className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
+                📋 Rezervácie
               </button>
             )}
             <button 
-              onClick={() => {supabase.auth.signOut(); router.push('/login')}} 
-              className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
+              onClick={() => setShowLogoutModal(true)} 
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
               Odhlásiť
             </button>
           </div>
@@ -222,65 +224,65 @@ export default function ProfilePage() {
       </div>
 
       {/* Form */}
-      <div className="max-w-[800px] mx-auto p-6 relative z-10">
-        <div className="bg-gray-800 text-white rounded-2xl p-8 border-2 border-amber-500/30">
-          <h2 className="text-2xl font-bold mb-6">Osobné údaje</h2>
+      <div className="max-w-[800px] mx-auto p-4 sm:p-6 relative z-10">
+        <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-8 border-2 border-amber-500/30">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Osobné údaje</h2>
           
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Meno */}
             <div>
-              <label className="block font-bold mb-2">Meno a priezvisko *</label>
+              <label className="block font-bold mb-2 text-sm sm:text-base">Meno a priezvisko *</label>
               <input
                 type="text"
                 value={formData.full_name}
                 onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                 required
-                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="Vaše meno"
               />
             </div>
 
             {/* Telefón */}
             <div>
-              <label className="block font-bold mb-2">Telefónne číslo</label>
+              <label className="block font-bold mb-2 text-sm sm:text-base">Telefónne číslo</label>
               <input
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="+421 123 456 789"
               />
             </div>
 
             {/* Email */}
             <div>
-              <label className="block font-bold mb-2">Email *</label>
+              <label className="block font-bold mb-2 text-sm sm:text-base">Email *</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
-                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="email@priklad.sk"
               />
-              <p className="text-sm text-gray-400 mt-1">
+              <p className="text-xs sm:text-sm text-gray-400 mt-1">
                 ⚠️ Pri zmene emailu budete odhlásený a musíte potvrdiť nový email
               </p>
             </div>
 
             {/* Oddeľovač */}
-            <div className="border-t-2 border-amber-500/30 pt-6">
-              <h3 className="font-bold text-lg mb-4">Zmena hesla (voliteľné)</h3>
+            <div className="border-t-2 border-amber-500/30 pt-4 sm:pt-6">
+              <h3 className="font-bold text-base sm:text-lg mb-3 sm:mb-4">Zmena hesla (voliteľné)</h3>
             </div>
 
             {/* Nové heslo */}
             <div>
-              <label className="block font-bold mb-2">Nové heslo</label>
+              <label className="block font-bold mb-2 text-sm sm:text-base">Nové heslo</label>
               <input
                 type="password"
                 value={formData.new_password}
                 onChange={(e) => setFormData({...formData, new_password: e.target.value})}
-                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="Nechajte prázdne ak nechcete meniť"
                 minLength={6}
               />
@@ -288,34 +290,67 @@ export default function ProfilePage() {
 
             {/* Potvrdenie hesla */}
             <div>
-              <label className="block font-bold mb-2">Potvrdiť nové heslo</label>
+              <label className="block font-bold mb-2 text-sm sm:text-base">Potvrdiť nové heslo</label>
               <input
                 type="password"
                 value={formData.confirm_password}
                 onChange={(e) => setFormData({...formData, confirm_password: e.target.value})}
-                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 text-sm sm:text-base border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="Zopakujte nové heslo"
                 minLength={6}
               />
             </div>
 
             {/* Tlačidlá */}
-            <div className="flex gap-4 pt-4">
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 pt-3 sm:pt-4">
               <button
                 type="submit"
-                className="flex-1 px-8 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
+                className="flex-1 px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20 text-sm sm:text-base">
                 💾 Uložiť zmeny
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/calendar')}
-                className="px-8 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
+                className="px-6 sm:px-8 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
                 ✕ Zrušiť
               </button>
             </div>
           </form>
         </div>
       </div>
+      
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-amber-500/50 shadow-2xl shadow-amber-500/20">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
+              <p className="text-gray-300">
+                Naozaj sa chcete odhlásiť zo svojho účtu?
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-gray-600"
+              >
+                Zrušiť
+              </button>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut()
+                  router.push('/login')
+                }}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30"
+              >
+                ✅ Áno, odhlásiť
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

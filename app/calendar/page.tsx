@@ -87,6 +87,12 @@ export default function CalendarPage() {
     message: ''
   })
   
+  // Hamburger menu state
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  
+  // Logout modal state
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  
   // Helper na zobrazenie notifikácie
   const showNotification = (type: 'error' | 'success' | 'warning' | 'info', message: string, title?: string) => {
     setNotification({ show: true, type, message, title })
@@ -1145,49 +1151,177 @@ export default function CalendarPage() {
         </div>
       )}
       
-      <div className="bg-white text-black p-6 border-b-4 border-black">
-        <div className="max-w-[1800px] mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">📅 Kalendár</h1>
-            <p className="text-gray-600">{profile?.full_name} ({profile?.role === 'admin' ? '👑 Admin' : profile?.role === 'employee' ? '👔 Zamestnanec' : '👤 Zákazník'})</p>
-          </div>
-          <div className="flex gap-4">
-            {/* Služby - admin alebo zamestnanec s oprávnením */}
-            {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
-              <button onClick={() => router.push('/services')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
-                ⚙️ Služby
-              </button>
-            )}
-            {/* Pracovné hodiny - admin alebo zamestnanec s oprávnením */}
-            {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
-              <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
-                ⏰ Pracovné hodiny
-              </button>
-            )}
-            {/* Štatistiky - admin alebo zamestnanec s oprávnením */}
-            {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
-              <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
-                📊 Štatistiky
-              </button>
-            )}
-            {/* Používatelia - admin alebo zamestnanec s oprávnením */}
-            {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
-              <button onClick={() => router.push('/users')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
-                👥 Používatelia
-              </button>
-            )}
-            <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
-              👤 Profil
+      <div className="bg-white text-black p-4 sm:p-6 border-b-4 border-black">
+        <div className="max-w-[1800px] mx-auto">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl sm:text-3xl font-bold">📅 Kalendár</h1>
+              <p className="text-gray-600 text-sm sm:text-base">{profile?.full_name} ({profile?.role === 'admin' ? '👑 Admin' : profile?.role === 'employee' ? '👔 Zamestnanec' : '👤 Zákazník'})</p>
+            </div>
+            
+            {/* Hamburger button - visible on mobile */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 text-2xl hover:bg-gray-100 rounded-lg"
+            >
+              {isMobileMenuOpen ? '✕' : '☰'}
             </button>
-            <button onClick={() => {supabase.auth.signOut(); router.push('/login')}} className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
-              Odhlásiť
-            </button>
+            
+            {/* Desktop menu - hidden on mobile */}
+            <div className="hidden lg:flex gap-4">
+              {/* Služby - admin alebo zamestnanec s oprávnením */}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
+                <button onClick={() => router.push('/services')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                  ⚙️ Služby
+                </button>
+              )}
+              {/* Pracovné hodiny - admin alebo zamestnanec s oprávnením */}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
+                <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                  ⏰ Pracovné hodiny
+                </button>
+              )}
+              {/* Štatistiky - admin alebo zamestnanec s oprávnením */}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
+                <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                  📊 Štatistiky
+                </button>
+              )}
+              {/* Používatelia - admin alebo zamestnanec s oprávnením */}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
+                <button onClick={() => router.push('/users')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                  👥 Používatelia
+                </button>
+              )}
+              <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                👤 Profil
+              </button>
+              <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+                Odhlásiť
+              </button>
+            </div>
           </div>
+          
+          {/* Mobile menu - shown when hamburger is clicked */}
+          {isMobileMenuOpen && (
+            <div className="lg:hidden mt-4 space-y-2 pb-2">
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
+                <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                  ⚙️ Služby
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
+                <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                  ⏰ Pracovné hodiny
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
+                <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                  📊 Štatistiky
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
+                <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                  👥 Používatelia
+                </button>
+              )}
+              <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                👤 Profil
+              </button>
+              <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-left">
+                Odhlásiť
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="max-w-[1800px] mx-auto p-6 grid grid-cols-[300px_1fr] gap-6">
-        <div className="space-y-6 sticky top-6 self-start">
+      <div className="max-w-[1800px] mx-auto p-0 sm:p-4 lg:p-6">
+        {/* Mobile date picker - nad časovým rozvrhom */}
+        <div className="lg:hidden mb-2 sm:mb-4 bg-white text-black rounded-none sm:rounded-xl p-3 sm:p-4 border-2 sm:border-4 border-gray-900">
+          <div className="flex items-center justify-between mb-3">
+            <button 
+              onClick={() => {
+                const d = new Date(calendarView)
+                d.setMonth(d.getMonth() - 1)
+                setCalendarView(d)
+              }} 
+              className="p-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm">
+              ←
+            </button>
+            <h2 className="text-lg font-bold">
+              {monthNames[month]} {year}
+            </h2>
+            <button 
+              onClick={() => {
+                const d = new Date(calendarView)
+                d.setMonth(d.getMonth() + 1)
+                setCalendarView(d)
+              }} 
+              className="p-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm">
+              →
+            </button>
+          </div>
+
+          {/* Dni v týždni */}
+          <div className="grid grid-cols-7 gap-1 mb-2">
+            {dayNames.map(day => (
+              <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
+                {day}
+              </div>
+            ))}
+          </div>
+
+          {/* Dni v mesiaci */}
+          <div className="grid grid-cols-7 gap-1">
+            {Array.from({ length: adjustedStartDay }).map((_, i) => (
+              <div key={`empty-${i}`} className="aspect-square"></div>
+            ))}
+            
+            {Array.from({ length: daysInMonth }).map((_, i) => {
+              const day = i + 1
+              const dateObj = new Date(year, month, day)
+              const isTodayDate = isToday(dateObj, day, month, year)
+              const isSelected = isSelectedDate(day, month, year)
+              
+              return (
+                <button
+                  key={day}
+                  onClick={() => {
+                    setSelectedDate(new Date(year, month, day))
+                  }}
+                  className={`aspect-square rounded-lg font-bold text-xs transition-all hover:scale-105 ${
+                    isSelected 
+                      ? 'bg-black text-white' 
+                      : isTodayDate 
+                      ? 'bg-blue-500 text-white'
+                      : 'bg-gray-100 hover:bg-gray-200'
+                  }`}>
+                  {day}
+                </button>
+              )
+            })}
+          </div>
+
+          <button 
+            onClick={() => {
+              const today = new Date()
+              setSelectedDate(today)
+              setCalendarView(today)
+            }} 
+            className="w-full mt-3 py-2 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm">
+            📅 Dnes
+          </button>
+
+          <div className="mt-3 p-2 bg-gray-50 rounded-lg border-2 border-gray-900">
+            <p className="text-xs text-gray-600 mb-1">Vybraný dátum:</p>
+            <p className="font-bold text-sm">{selectedDate.toLocaleDateString('sk-SK', {day:'numeric',month:'long',year:'numeric'})}</p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-4 lg:gap-6">
+        {/* Desktop sidebar - skrytý na mobile */}
+        <div className="hidden lg:block space-y-6 sticky top-6 self-start">
           {/* Date picker */}
           <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
             <div className="flex items-center justify-between mb-4">
@@ -1274,17 +1408,9 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {/* Nová rezervácia tlačidlo */}
-          <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
-            <button
-              onClick={openCreateModal}
-              className="w-full py-4 bg-black text-white rounded-xl font-bold text-xl hover:bg-gray-800 transition-all flex items-center justify-center gap-3 mb-3">
-              <span className="text-3xl">➕</span>
-              <span>Nová rezervácia</span>
-            </button>
-            
-            {/* Súkromný termín tlačidlo (pre admina a zamestnancov) */}
-            {(profile?.role === 'admin' || profile?.role === 'employee') && (
+          {/* Súkromný termín tlačidlo - len pre desktop (admin a zamestnancov) */}
+          {(profile?.role === 'admin' || profile?.role === 'employee') && (
+            <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
               <button
                 onClick={() => {
                   setPrivateForm({
@@ -1300,38 +1426,39 @@ export default function CalendarPage() {
                 <span className="text-3xl">🔒</span>
                 <span>Súkromný termín</span>
               </button>
-            )}
-            
-            <p className="text-sm text-gray-600 mt-4 text-center">
-              Kliknite pre vytvorenie novej rezervácie
-            </p>
-          </div>
+              
+              <p className="text-sm text-gray-600 mt-4 text-center">
+                Kliknite na bielu plochu v rozvrhu<br/>alebo použite toto tlačidlo
+              </p>
+            </div>
+          )}
         </div>
 
-        {/* Calendar */}
-        <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
-          <h2 className="text-2xl font-bold mb-6">Časový rozvrh (presnosť 5 min)</h2>
-          <div className="flex gap-4">
+        {/* Calendar - celá šírka na mobile */}
+        <div className="bg-white text-black rounded-none sm:rounded-xl lg:rounded-2xl p-2 sm:p-4 lg:p-6 border-t-2 sm:border-2 lg:border-4 border-gray-900">
+          <h2 className="text-base sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-4 lg:mb-6 px-2 sm:px-0">Časový rozvrh</h2>
+          <div className="flex gap-1 sm:gap-3 lg:gap-4 overflow-x-auto overflow-y-hidden">
             {/* Time labels */}
-            <div className="w-16 flex-shrink-0">
+            <div className="w-6 sm:w-12 lg:w-16 flex-shrink-0">
               {/* Spacer pre hlavičku */}
-              <div className="h-[60px]"></div>
+              <div className="h-[35px] sm:h-[50px] lg:h-[60px]"></div>
               {/* Time labels */}
               <div className="relative" style={{ height: `${calendarHeight}px` }}>
                 {Array.from({ length: totalHours + 1 }, (_, i) => (
                   <div 
                     key={i} 
-                    className="absolute text-sm font-bold text-gray-700"
+                    className="absolute text-[9px] sm:text-xs lg:text-sm font-bold text-gray-700"
                     style={{ top: `${i * PIXELS_PER_HOUR - 8}px` }}
                   >
-                    {`${HOURS_START + i}:00`}
+                    <span className="block sm:hidden">{HOURS_START + i}</span>
+                    <span className="hidden sm:block">{`${HOURS_START + i}:00`}</span>
                   </div>
                 ))}
               </div>
             </div>
 
             {/* Employee columns */}
-            <div className="flex-1 grid gap-4 relative" style={{ gridTemplateColumns: `repeat(${employees.length}, 1fr)` }}>
+            <div className="flex-1 grid gap-1 sm:gap-3 lg:gap-4 relative min-w-0" style={{ gridTemplateColumns: `repeat(${employees.length}, minmax(100px, 1fr))` }}>
               {/* Current time line - single red line across all columns */}
               {(() => {
                 const timeLinePosition = getCurrentTimePosition()
@@ -1352,10 +1479,10 @@ export default function CalendarPage() {
               })()}
               
               {employees.map(emp => (
-                <div key={emp.id} className="flex flex-col">
-                  <div className="font-bold text-center pb-3 border-b-2 border-gray-900 mb-2">
-                    <div>{emp.name}</div>
-                    <div className="text-sm font-normal text-gray-600">{emp.position}</div>
+                <div key={emp.id} className="flex flex-col min-w-0">
+                  <div className="font-bold text-center pb-1 sm:pb-3 border-b-2 border-gray-900 mb-1 sm:mb-2 min-w-0">
+                    <div className="text-[10px] sm:text-sm lg:text-base truncate">{emp.name}</div>
+                    <div className="text-[8px] sm:text-xs lg:text-sm font-normal text-gray-600 truncate">{emp.position}</div>
                   </div>
                   <div 
                     ref={calendarRef}
@@ -1418,7 +1545,7 @@ export default function CalendarPage() {
                             }}
                           >
                             <div className="flex items-center justify-center h-full">
-                              <p className="text-gray-700 font-bold text-lg">🚫 Nepracuje</p>
+                              <p className="text-gray-700 font-bold text-xs sm:text-sm lg:text-base">🚫 Nepracuje</p>
                             </div>
                           </div>
                         )
@@ -1448,7 +1575,7 @@ export default function CalendarPage() {
                             }}
                           >
                             {beforeHeight > 60 && (
-                              <p className="text-gray-700 font-bold text-sm">🔒 Zatvorené</p>
+                              <p className="text-gray-700 font-bold text-[10px] sm:text-xs lg:text-sm">🔒 Zatvorené</p>
                             )}
                           </div>
                         )
@@ -1475,7 +1602,7 @@ export default function CalendarPage() {
                             }}
                           >
                             {afterHeightPx > 60 && (
-                              <p className="text-gray-700 font-bold text-sm">🔒 Zatvorené</p>
+                              <p className="text-gray-700 font-bold text-[10px] sm:text-xs lg:text-sm">🔒 Zatvorené</p>
                             )}
                           </div>
                         )
@@ -1525,10 +1652,10 @@ export default function CalendarPage() {
                             style={{ 
                               top: `${top}px`, 
                               height: `${height}px`,
-                              minHeight: '35px',
-                              left: '4px',
-                              right: '4px',
-                              padding: height < 50 ? '4px 8px' : '8px'
+                              minHeight: '30px',
+                              left: '2px',
+                              right: '2px',
+                              padding: height < 50 ? '2px 4px' : height < 80 ? '4px 6px' : '6px 8px'
                             }}
                           >
                             {/* Veľké bloky (>120px) - všetky info vrátane poznámok */}
@@ -1537,29 +1664,29 @@ export default function CalendarPage() {
                                 {r.is_private ? (
                                   // Súkromný termín
                                   <>
-                                    <p className="font-bold text-sm leading-tight truncate mb-1">🔒 Súkromný termín</p>
-                                    <p className="text-xs opacity-90 truncate">📅 {r.reservation_date}</p>
-                                    <p className="text-xs opacity-90 truncate">
+                                    <p className="font-bold text-[10px] sm:text-xs lg:text-sm leading-tight truncate mb-1">🔒 Súkromný termín</p>
+                                    <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">📅 {r.reservation_date}</p>
+                                    <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">
                                       ⏱️ {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
-                                    {r.notes && <p className="text-xs opacity-80 truncate mt-1">💬 {r.notes}</p>}
+                                    {r.notes && <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-80 truncate mt-1">💬 {r.notes}</p>}
                                   </>
                                 ) : (
                                   // Normálna rezervácia
                                   <>
-                                    <p className="font-bold text-sm leading-tight truncate mb-1">
+                                    <p className="font-bold text-[10px] sm:text-xs lg:text-sm leading-tight truncate mb-1">
                                       {canSeePersonalInfo ? `📋 ${r.services?.name}` : '🔒 Obsadené'}
                                     </p>
                                     {canSeePersonalInfo && (
                                       <>
-                                        <p className="text-xs opacity-90 truncate">👤 {r.first_name} {r.last_name}</p>
-                                        <p className="text-xs opacity-90 truncate">📞 {r.phone}</p>
+                                        <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">👤 {r.first_name} {r.last_name}</p>
+                                        <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">📞 {r.phone}</p>
                                       </>
                                     )}
-                                    <p className="text-xs opacity-90 truncate">
+                                    <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">
                                       ⏱️ {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
-                                    {canSeePersonalInfo && r.notes && <p className="text-xs opacity-80 truncate mt-1">💬 {r.notes}</p>}
+                                    {canSeePersonalInfo && r.notes && <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-80 truncate mt-1">💬 {r.notes}</p>}
                                   </>
                                 )}
                               </>
@@ -1603,22 +1730,22 @@ export default function CalendarPage() {
                                 {r.is_private ? (
                                   // Súkromný termín
                                   <>
-                                    <p className="font-bold text-xs leading-tight truncate">🔒 Súkromný termín</p>
-                                    {r.notes && <p className="text-xs opacity-90 truncate">{r.notes}</p>}
-                                    <p className="text-xs opacity-90 truncate">
+                                    <p className="font-bold text-[9px] sm:text-[10px] lg:text-xs leading-tight truncate">🔒 Súkromný termín</p>
+                                    {r.notes && <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">{r.notes}</p>}
+                                    <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">
                                       {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
                                   </>
                                 ) : (
                                   // Normálna rezervácia
                                   <>
-                                    <p className="font-bold text-xs leading-tight truncate">
+                                    <p className="font-bold text-[9px] sm:text-[10px] lg:text-xs leading-tight truncate">
                                       {canSeePersonalInfo ? r.services?.name : '🔒 Obsadené'}
                                     </p>
                                     {canSeePersonalInfo && (
-                                      <p className="text-xs opacity-90 truncate">{r.first_name} {r.last_name}</p>
+                                      <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">{r.first_name} {r.last_name}</p>
                                     )}
-                                    <p className="text-xs opacity-90 truncate">
+                                    <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">
                                       {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
                                   </>
@@ -1628,7 +1755,7 @@ export default function CalendarPage() {
                             
                             {/* Malé bloky (35-50px) - info v riadku alebo len obsadené a čas */}
                             {height > 35 && height <= 50 && (
-                              <p className="font-bold text-xs leading-tight truncate">
+                              <p className="font-bold text-[8px] sm:text-[9px] lg:text-[10px] leading-tight truncate">
                                 {r.is_private 
                                   ? `🔒 Súkromný • ${r.reservation_time.slice(0, 5)} - ${endTime}`
                                   : canSeePersonalInfo 
@@ -1640,7 +1767,7 @@ export default function CalendarPage() {
                             
                             {/* Mini bloky (<=35px) - len čas a info */}
                             {height <= 35 && (
-                              <p className="font-bold text-xs truncate">
+                              <p className="font-bold text-[7px] sm:text-[8px] lg:text-[9px] truncate">
                                 {r.is_private 
                                   ? `🔒 ${r.reservation_time.slice(0, 5)} - ${endTime}`
                                   : canSeePersonalInfo 
@@ -1652,7 +1779,7 @@ export default function CalendarPage() {
                             
                             {/* Notes indicator - ak existuje poznámka ale nie je zobrazená */}
                             {r.notes && height <= 120 && (
-                              <div className="absolute top-1 left-1 bg-yellow-500 w-5 h-5 rounded-full text-xs font-bold flex items-center justify-center z-10 shadow-md">
+                              <div className="absolute top-0.5 left-0.5 sm:top-1 sm:left-1 bg-yellow-500 w-3 h-3 sm:w-4 sm:h-4 lg:w-5 lg:h-5 rounded-full text-[8px] sm:text-[9px] lg:text-xs font-bold flex items-center justify-center z-10 shadow-md">
                                 💬
                               </div>
                             )}
@@ -1660,7 +1787,7 @@ export default function CalendarPage() {
                             {editable && (
                               <button 
                                 onClick={(e) => {e.stopPropagation(); deleteRes(r.id, r)}} 
-                                className="absolute top-1 right-1 bg-red-600 w-5 h-5 rounded text-xs font-bold hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                                className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 bg-red-600 w-4 h-4 sm:w-5 sm:h-5 rounded text-[9px] sm:text-[10px] lg:text-xs font-bold hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
                                 ✕
                               </button>
                             )}
@@ -1673,6 +1800,8 @@ export default function CalendarPage() {
             </div>
           </div>
         </div>
+        </div>
+        {/* Uzatvorenie grid wrapper */}
       </div>
       
       {/* Floating drag preview */}
@@ -1789,25 +1918,25 @@ export default function CalendarPage() {
       
       {/* Private Event Modal */}
       {showPrivateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-black rounded-2xl p-6 border-4 border-purple-600 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold mb-6 flex items-center gap-3">
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
+          <div className="bg-white text-black rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-purple-600 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
               <span>🔒 {editingPrivateEvent ? 'Upraviť súkromný termín' : 'Súkromný termín'}</span>
             </h2>
             
-            <form onSubmit={handlePrivateSubmit} className="space-y-4">
+            <form onSubmit={handlePrivateSubmit} className="space-y-3 sm:space-y-4">
               {/* Základné údaje */}
-              <div className="bg-purple-50 p-4 rounded-lg border-2 border-purple-300">
-                <h3 className="font-bold mb-3 text-lg">📅 Detaily termínu</h3>
+              <div className="bg-purple-50 p-3 sm:p-4 rounded-lg border-2 border-purple-300">
+                <h3 className="font-bold mb-3 text-base sm:text-lg">📅 Detaily termínu</h3>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
-                    <label className="block font-bold mb-2">Zamestnankyňa *</label>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Zamestnankyňa *</label>
                     <select
                       value={privateForm.employee_id}
                       onChange={(e) => setPrivateForm({...privateForm, employee_id: e.target.value})}
                       required
-                      className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     >
                       {employees.map(emp => (
                         <option key={emp.id} value={emp.id}>{emp.name}</option>
@@ -1816,54 +1945,54 @@ export default function CalendarPage() {
                   </div>
                   
                   <div>
-                    <label className="block font-bold mb-2">Dátum *</label>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Dátum *</label>
                     <input
                       type="date"
                       value={privateForm.reservation_date}
                       onChange={(e) => setPrivateForm({...privateForm, reservation_date: e.target.value})}
                       required
-                      className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     />
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4 mt-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mt-3 sm:mt-4">
                   <div>
-                    <label className="block font-bold mb-2">Čas od *</label>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Čas od *</label>
                     <input
                       type="time"
                       value={privateForm.start_time}
                       onChange={(e) => setPrivateForm({...privateForm, start_time: e.target.value})}
                       required
-                      className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     />
                   </div>
                   
                   <div>
-                    <label className="block font-bold mb-2">Čas do *</label>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Čas do *</label>
                     <input
                       type="time"
                       value={privateForm.end_time}
                       onChange={(e) => setPrivateForm({...privateForm, end_time: e.target.value})}
                       required
-                      className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     />
                   </div>
                 </div>
                 
-                <div className="mt-4">
-                  <label className="block font-bold mb-2">Poznámka</label>
+                <div className="mt-3 sm:mt-4">
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Poznámka</label>
                   <textarea
                     value={privateForm.notes}
                     onChange={(e) => setPrivateForm({...privateForm, notes: e.target.value})}
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     rows={3}
                     placeholder="Voliteľná poznámka k termínu..."
                   />
                 </div>
               </div>
               
-              <div className="flex gap-3 mt-6">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 mt-4 sm:mt-6">
                 <button
                   type="button"
                   onClick={() => {
@@ -1877,7 +2006,7 @@ export default function CalendarPage() {
                       notes: ''
                     })
                   }}
-                  className="flex-1 px-6 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors"
+                  className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors text-sm sm:text-base"
                 >
                   Zrušiť
                 </button>
@@ -1912,14 +2041,14 @@ export default function CalendarPage() {
                         }
                       )
                     }}
-                    className="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+                    className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors text-sm sm:text-base"
                   >
                     🗑️ Zmazať
                   </button>
                 )}
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors"
+                  className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors text-sm sm:text-base"
                 >
                   🔒 {editingPrivateEvent ? 'Uložiť zmeny' : 'Vytvoriť termín'}
                 </button>
@@ -2193,6 +2322,39 @@ export default function CalendarPage() {
                 className="w-full px-8 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400"
               >
                 ✕ Zavrieť
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Logout Confirmation Modal - Admin Theme */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white text-black rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-black shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
+              <p className="text-gray-600">
+                Naozaj sa chcete odhlásiť z administrátorského účtu?
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-6 py-3 bg-gray-200 text-black rounded-lg font-bold hover:bg-gray-300 border-2 border-black"
+              >
+                Zrušiť
+              </button>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut()
+                  router.push('/login')
+                }}
+                className="flex-1 px-6 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 border-2 border-black"
+              >
+                ✅ Áno, odhlásiť
               </button>
             </div>
           </div>

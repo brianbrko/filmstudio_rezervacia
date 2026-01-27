@@ -141,7 +141,7 @@ export default function RegisterPage() {
       </div>
       
       {notification.show && (
-        <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right relative">
+        <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
           <div className={`
             max-w-md rounded-xl shadow-2xl border-4 p-5 
             ${notification.type === 'error' ? 'bg-red-500 border-red-700' : ''}
@@ -150,7 +150,7 @@ export default function RegisterPage() {
             ${notification.type === 'info' ? 'bg-blue-500 border-blue-700' : ''}
           `}>
             <div className="flex items-start gap-3">
-              <div className="text-3xl">
+              <div className="text-2xl sm:text-3xl">
                 {notification.type === 'error' && '❌'}
                 {notification.type === 'success' && '✅'}
                 {notification.type === 'warning' && '⚠️'}
@@ -177,28 +177,32 @@ export default function RegisterPage() {
         </div>
       )}
       
-      <div className="w-full max-w-md relative z-10">
-        <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 border-2 border-amber-500/50">
-          <div className="flex justify-center mb-6">
+      <div className="w-full max-w-md relative z-10 px-4">
+        <div className="bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 border-2 border-amber-500/50">
+          <Link href="/" className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 mb-4 font-bold transition-colors">
+            <span className="text-xl sm:text-2xl">←</span>
+            <span className="text-sm sm:text-base">Späť</span>
+          </Link>
+          <div className="flex justify-center mb-4 sm:mb-6">
             <Image 
               src="/images/logo.png" 
               alt="Art Studio Logo" 
               width={120} 
               height={120}
-              className="object-contain"
+              className="object-contain w-20 h-20 sm:w-28 sm:h-28"
             />
           </div>
-          <h1 className="text-4xl font-bold text-center mb-2 text-white">Registrácia</h1>
-          <p className="text-center text-gray-300 mb-8">Vytvorte si nový účet</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2 text-white">Registrácia</h1>
+          <p className="text-center text-gray-300 mb-6 sm:mb-8 text-sm sm:text-base">Vytvorte si nový účet</p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label className="block text-sm font-bold mb-2 text-white">Celé meno</label>
               <input
                 type="text"
                 value={formData.full_name}
                 onChange={(e) => setFormData({ ...formData, full_name: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                 required
               />
             </div>
@@ -209,7 +213,7 @@ export default function RegisterPage() {
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                 required
               />
             </div>
@@ -220,7 +224,7 @@ export default function RegisterPage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
               />
             </div>
 
@@ -230,7 +234,7 @@ export default function RegisterPage() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                 required
                 minLength={6}
               />
@@ -242,9 +246,9 @@ export default function RegisterPage() {
                 id="isAdmin"
                 checked={isAdmin}
                 onChange={(e) => setIsAdmin(e.target.checked)}
-                className="w-5 h-5 border-2 border-amber-500/50"
+                className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-amber-500/50"
               />
-              <label htmlFor="isAdmin" className="ml-3 text-sm font-bold text-white">
+              <label htmlFor="isAdmin" className="ml-3 text-xs sm:text-sm font-bold text-white">
                 Registrovať ako admin
               </label>
             </div>
@@ -256,7 +260,7 @@ export default function RegisterPage() {
                   type="password"
                   value={formData.admin_code}
                   onChange={(e) => setFormData({ ...formData, admin_code: e.target.value })}
-                  className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                  className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                   maxLength={4}
                   placeholder="Zadajte admin kód"
                   required={isAdmin}
@@ -265,7 +269,7 @@ export default function RegisterPage() {
             )}
 
             {error && (
-              <div className="p-4 bg-red-900/50 border-2 border-red-500 rounded-lg text-red-300 font-bold">
+              <div className="p-3 sm:p-4 bg-red-900/50 border-2 border-red-500 rounded-lg text-red-300 font-bold text-sm sm:text-base">
                 {error}
               </div>
             )}
@@ -273,13 +277,13 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white py-4 rounded-lg font-bold text-lg hover:from-amber-500 hover:to-amber-700 disabled:opacity-50 transition-colors shadow-lg shadow-amber-500/20"
+              className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg hover:from-amber-500 hover:to-amber-700 disabled:opacity-50 transition-colors shadow-lg shadow-amber-500/20"
             >
               {loading ? 'Vytváram účet...' : 'Registrovať'}
             </button>
           </form>
 
-          <p className="text-center mt-6 text-gray-300">
+          <p className="text-center mt-4 sm:mt-6 text-gray-300 text-sm sm:text-base">
             Už máte účet?{' '}
             <Link href="/login" className="text-amber-400 font-bold hover:text-amber-300 hover:underline">
               Prihláste sa

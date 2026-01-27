@@ -92,28 +92,32 @@ export default function LoginPage() {
         </svg>
       </div>
       
-      <div className="w-full max-w-md relative z-10">
-        <div className="bg-gray-800 rounded-2xl shadow-2xl p-8 border-2 border-amber-500/50">
-          <div className="flex justify-center mb-6">
+      <div className="w-full max-w-md relative z-10 px-4">
+        <div className="bg-gray-800 rounded-2xl shadow-2xl p-6 sm:p-8 border-2 border-amber-500/50">
+          <Link href="/" className="inline-flex items-center gap-2 text-amber-400 hover:text-amber-300 mb-4 font-bold transition-colors">
+            <span className="text-xl sm:text-2xl">←</span>
+            <span className="text-sm sm:text-base">Späť</span>
+          </Link>
+          <div className="flex justify-center mb-4 sm:mb-6">
             <Image 
               src="/images/logo.png" 
               alt="Art Studio Logo" 
               width={120} 
               height={120}
-              className="object-contain"
+              className="object-contain w-20 h-20 sm:w-28 sm:h-28"
             />
           </div>
-          <h1 className="text-4xl font-bold text-center mb-2 text-white">Prihlásenie</h1>
-          <p className="text-center text-gray-300 mb-8">Vitajte späť!</p>
+          <h1 className="text-3xl sm:text-4xl font-bold text-center mb-2 text-white">Prihlásenie</h1>
+          <p className="text-center text-gray-300 mb-6 sm:mb-8">Vitajte späť!</p>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             <div>
               <label className="block text-sm font-bold mb-2 text-white">Email</label>
               <input
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                 required
               />
             </div>
@@ -124,13 +128,13 @@ export default function LoginPage() {
                 type="password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-amber-500/50 rounded-lg focus:ring-2 focus:ring-amber-400 focus:border-amber-500 bg-gray-900 text-white placeholder-gray-400 text-sm sm:text-base"
                 required
               />
             </div>
 
             {error && (
-              <div className="p-4 bg-red-900/50 border-2 border-red-500 rounded-lg text-red-300 font-bold">
+              <div className="p-3 sm:p-4 bg-red-900/50 border-2 border-red-500 rounded-lg text-red-300 font-bold text-sm sm:text-base">
                 {error}
               </div>
             )}
@@ -138,13 +142,13 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white py-4 rounded-lg font-bold text-lg hover:from-amber-500 hover:to-amber-700 disabled:opacity-50 transition-colors shadow-lg shadow-amber-500/20"
+              className="w-full bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg hover:from-amber-500 hover:to-amber-700 disabled:opacity-50 transition-colors shadow-lg shadow-amber-500/20"
             >
               {loading ? 'Prihlasovanie...' : 'Prihlásiť sa'}
             </button>
           </form>
 
-          <p className="text-center mt-6 text-gray-300">
+          <p className="text-center mt-4 sm:mt-6 text-gray-300 text-sm sm:text-base">
             Nemáte účet?{' '}
             <Link href="/register" className="text-amber-400 font-bold hover:text-amber-300 hover:underline">
               Zaregistrujte sa

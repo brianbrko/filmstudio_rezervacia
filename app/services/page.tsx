@@ -32,6 +32,8 @@ export default function ServicesPage() {
     message: ''
   })
   
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
+  
   const showNotification = (type: 'error' | 'success' | 'warning' | 'info', message: string, title?: string) => {
     setNotification({ show: true, type, message, title })
     setTimeout(() => {
@@ -225,16 +227,16 @@ export default function ServicesPage() {
     <div className="min-h-screen bg-black text-white">
       {/* Custom Notification System */}
       {notification.show && (
-        <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
+        <div className="fixed top-4 right-4 z-[9999] animate-slide-in-right">
           <div className={`
-            max-w-md rounded-xl shadow-2xl border-4 p-5 
+            max-w-[90vw] sm:max-w-md rounded-xl shadow-2xl border-2 sm:border-4 p-3 sm:p-5 
             ${notification.type === 'error' ? 'bg-red-500 border-red-700' : ''}
             ${notification.type === 'success' ? 'bg-green-500 border-green-700' : ''}
             ${notification.type === 'warning' ? 'bg-yellow-500 border-yellow-700' : ''}
             ${notification.type === 'info' ? 'bg-blue-500 border-blue-700' : ''}
           `}>
-            <div className="flex items-start gap-3">
-              <div className="text-3xl">
+            <div className="flex items-start gap-2 sm:gap-3">
+              <div className="text-xl sm:text-3xl">
                 {notification.type === 'error' && '❌'}
                 {notification.type === 'success' && '✅'}
                 {notification.type === 'warning' && '⚠️'}
@@ -242,17 +244,17 @@ export default function ServicesPage() {
               </div>
               <div className="flex-1">
                 {notification.title && (
-                  <div className="font-bold text-lg text-white mb-1">
+                  <div className="font-bold text-base sm:text-lg text-white mb-1">
                     {notification.title}
                   </div>
                 )}
-                <div className="text-white">
+                <div className="text-white text-sm sm:text-base">
                   {notification.message}
                 </div>
               </div>
               <button 
                 onClick={() => setNotification(prev => ({ ...prev, show: false }))}
-                className="text-white hover:text-gray-200 text-2xl leading-none"
+                className="text-white hover:text-gray-200 text-lg sm:text-2xl leading-none"
               >
                 ×
               </button>
@@ -264,19 +266,19 @@ export default function ServicesPage() {
       {/* Confirmation Modal */}
       {confirmModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[10000] p-4">
-          <div className="bg-white rounded-2xl border-4 border-black max-w-md w-full p-6 shadow-2xl">
-            <h3 className="text-2xl font-bold text-black mb-3">{confirmModal.title}</h3>
-            <p className="text-gray-700 text-lg mb-6">{confirmModal.message}</p>
-            <div className="flex gap-3 justify-end">
+          <div className="bg-white rounded-2xl border-2 sm:border-4 border-black max-w-md w-full p-4 sm:p-6 shadow-2xl">
+            <h3 className="text-xl sm:text-2xl font-bold text-black mb-2 sm:mb-3">{confirmModal.title}</h3>
+            <p className="text-gray-700 text-base sm:text-lg mb-4 sm:mb-6">{confirmModal.message}</p>
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-end">
               <button
                 onClick={handleCancelConfirm}
-                className="px-6 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors text-sm sm:text-base"
               >
                 ✕ Zrušiť
               </button>
               <button
                 onClick={handleConfirm}
-                className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+                className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors text-sm sm:text-base"
               >
                 🗑️ Vymazať
               </button>
@@ -286,104 +288,104 @@ export default function ServicesPage() {
       )}
       
       {/* Header */}
-      <div className="bg-white text-black p-6 border-b-4 border-black">
-        <div className="max-w-[1400px] mx-auto flex justify-between items-center">
+      <div className="bg-white text-black p-4 sm:p-6 border-b-2 sm:border-b-4 border-black">
+        <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
-            <h1 className="text-3xl font-bold">⚙️ Správa služieb</h1>
-            <p className="text-gray-600">Admin panel - {profile?.full_name}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold">⚙️ Správa služieb</h1>
+            <p className="text-gray-600 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
           </div>
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
             <button 
               onClick={() => router.push('/calendar')} 
-              className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-sm sm:text-base">
               📅 Kalendár
             </button>
             <button 
-              onClick={() => {supabase.auth.signOut(); router.push('/login')}} 
-              className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+              onClick={() => setShowLogoutModal(true)} 
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm sm:text-base">
               Odhlásiť
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-[1400px] mx-auto p-6">
+      <div className="max-w-[1400px] mx-auto p-4 sm:p-6">
         {/* Add button */}
         {!showAddForm && (
           <button
             onClick={() => setShowAddForm(true)}
-            className="mb-6 px-8 py-4 bg-green-600 text-white rounded-lg font-bold text-lg hover:bg-green-700 transition-colors">
+            className="mb-4 sm:mb-6 px-6 sm:px-8 py-3 sm:py-4 bg-green-600 text-white rounded-lg font-bold text-base sm:text-lg hover:bg-green-700 transition-colors w-full sm:w-auto">
             ➕ Pridať novú službu
           </button>
         )}
 
         {/* Add/Edit Form */}
         {showAddForm && (
-          <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900 mb-6">
-            <h2 className="text-2xl font-bold mb-4">
+          <div className="bg-white text-black rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-gray-900 mb-4 sm:mb-6">
+            <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
               {editingId ? '✏️ Upraviť službu' : '➕ Nová služba'}
             </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div>
-                <label className="block font-bold mb-2">Názov služby *</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">Názov služby *</label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({...formData, name: e.target.value})}
                   required
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                  className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                   placeholder="napr. Dámsky strih"
                 />
               </div>
               
               <div>
-                <label className="block font-bold mb-2">Popis</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">Popis</label>
                 <input
                   type="text"
                   value={formData.description}
                   onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                  className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                   placeholder="napr. Profesionálny dámsky strih"
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div>
-                  <label className="block font-bold mb-2">Cena (€) *</label>
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Cena (€) *</label>
                   <input
                     type="number"
                     step="0.01"
                     value={formData.price}
                     onChange={(e) => setFormData({...formData, price: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     placeholder="25.00"
                   />
                 </div>
                 
                 <div>
-                  <label className="block font-bold mb-2">Trvanie (min) *</label>
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Trvanie (min) *</label>
                   <input
                     type="number"
                     value={formData.duration_minutes}
                     onChange={(e) => setFormData({...formData, duration_minutes: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base"
                     placeholder="60"
                   />
                 </div>
               </div>
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex flex-col sm:flex-row gap-2 sm:gap-4 pt-3 sm:pt-4">
                 <button
                   type="submit"
-                  className="px-8 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800">
+                  className="px-6 sm:px-8 py-2 sm:py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm sm:text-base">
                   {editingId ? '💾 Uložiť zmeny' : '➕ Pridať službu'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
-                  className="px-8 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400">
+                  className="px-6 sm:px-8 py-2 sm:py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 text-sm sm:text-base">
                   ✕ Zrušiť
                 </button>
               </div>
@@ -392,41 +394,41 @@ export default function ServicesPage() {
         )}
 
         {/* Services List */}
-        <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
-          <h2 className="text-2xl font-bold mb-6">📋 Zoznam služieb ({services.length})</h2>
+        <div className="bg-white text-black rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-gray-900">
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">📋 Zoznam služieb ({services.length})</h2>
           
           {services.length === 0 ? (
-            <p className="text-gray-600 text-center py-8">Žiadne služby</p>
+            <p className="text-gray-600 text-center py-6 sm:py-8 text-sm sm:text-base">Žiadne služby</p>
           ) : (
             <div className="space-y-3">
               {services.map(service => (
                 <div
                   key={service.id}
-                  className="border-2 border-gray-900 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex justify-between items-start">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold">{service.name}</h3>
+                  className="border-2 border-gray-900 rounded-lg p-3 sm:p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex flex-col sm:flex-row justify-between items-start gap-3">
+                    <div className="flex-1 w-full">
+                      <h3 className="text-lg sm:text-xl font-bold">{service.name}</h3>
                       {service.description && (
-                        <p className="text-gray-600 text-sm mt-1">{service.description}</p>
+                        <p className="text-gray-600 text-xs sm:text-sm mt-1">{service.description}</p>
                       )}
-                      <div className="flex gap-4 mt-2">
-                        <span className="px-3 py-1 bg-green-100 text-green-800 rounded-lg font-bold text-sm">
+                      <div className="flex flex-wrap gap-2 sm:gap-4 mt-2">
+                        <span className="px-2 sm:px-3 py-1 bg-green-100 text-green-800 rounded-lg font-bold text-xs sm:text-sm">
                           💰 {service.price}€
                         </span>
-                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-lg font-bold text-sm">
+                        <span className="px-2 sm:px-3 py-1 bg-blue-100 text-blue-800 rounded-lg font-bold text-xs sm:text-sm">
                           ⏱️ {service.duration_minutes} min
                         </span>
                       </div>
                     </div>
-                    <div className="flex gap-2 ml-4">
+                    <div className="flex gap-2 w-full sm:w-auto sm:ml-4">
                       <button
                         onClick={() => handleEdit(service)}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700">
+                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 text-xs sm:text-sm">
                         ✏️ Upraviť
                       </button>
                       <button
                         onClick={() => handleDelete(service.id, service.name)}
-                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700">
+                        className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 text-xs sm:text-sm">
                         🗑️ Vymazať
                       </button>
                     </div>
@@ -437,6 +439,39 @@ export default function ServicesPage() {
           )}
         </div>
       </div>
+      
+      {/* Logout Confirmation Modal - Admin Theme */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white text-black rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-black shadow-2xl">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
+              <p className="text-gray-600">
+                Naozaj sa chcete odhlásiť z administrátorského účtu?
+              </p>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => setShowLogoutModal(false)}
+                className="flex-1 px-6 py-3 bg-gray-200 text-black rounded-lg font-bold hover:bg-gray-300 border-2 border-black"
+              >
+                Zrušiť
+              </button>
+              <button
+                onClick={() => {
+                  supabase.auth.signOut()
+                  router.push('/login')
+                }}
+                className="flex-1 px-6 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 border-2 border-black"
+              >
+                ✅ Áno, odhlásiť
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
