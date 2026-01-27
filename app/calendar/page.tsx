@@ -125,6 +125,9 @@ export default function CalendarPage() {
   const HOURS_END = 24
   const PIXELS_PER_HOUR = 120
   const SNAP_MINUTES = 5
+  
+  // Current time line state
+  const [currentTime, setCurrentTime] = useState(new Date())
 
   // Helper funkcia pre bezpečnú konverziu Date na YYYY-MM-DD bez UTC problémov
   const formatDateToString = (date: Date): string => {
@@ -144,6 +147,15 @@ export default function CalendarPage() {
   useEffect(() => {
     if (profile) fetchData()
   }, [profile, selectedDate])
+  
+  // Update current time every minute
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(new Date())
+    }, 60000) // Update every minute
+    
+    return () => clearInterval(timer)
+  }, [])
 
   const checkUser = async () => {
     const { data: { user } } = await supabase.auth.getUser()
@@ -189,7 +201,11 @@ export default function CalendarPage() {
     if (wh.data) setWorkingHours(wh.data)
     if (ewh.data) setEmployeeWorkingHours(ewh.data)
     if (sdh.data) setSpecificDayHours(sdh.data)
-    if (sd.data) setSpecialDays([sd.data])
+    if (sd.data) {
+      setSpecialDays([sd.data])
+    } else {
+      setSpecialDays([]) // Ak nie je špeciálny deň, nastav prázdne pole
+    }
     
     if (r.error) {
       console.error('❌ Chyba pri načítaní rezervácií:', r.error)
@@ -234,6 +250,25 @@ export default function CalendarPage() {
   const timeToMinutes = (time: string) => {
     const [h, m] = time.split(':').map(Number)
     return h * 60 + m
+  }
+  
+  // Calculate position of current time line
+  const getCurrentTimePosition = () => {
+    // Only show line if selected date is today
+    const today = new Date()
+    const isToday = formatDateToString(selectedDate) === formatDateToString(today)
+    
+    if (!isToday) return null
+    
+    const hours = currentTime.getHours()
+    const minutes = currentTime.getMinutes()
+    const totalMinutes = hours * 60 + minutes
+    
+    // Calculate position (similar to getTopPosition but for current time)
+    const minutesFromStart = totalMinutes - (HOURS_START * 60)
+    const position = (minutesFromStart / 60) * PIXELS_PER_HOUR
+    
+    return position
   }
 
   // Vypočíta koncový čas z reservation_time a duration_minutes
@@ -1296,7 +1331,26 @@ export default function CalendarPage() {
             </div>
 
             {/* Employee columns */}
-            <div className="flex-1 grid gap-4" style={{ gridTemplateColumns: `repeat(${employees.length}, 1fr)` }}>
+            <div className="flex-1 grid gap-4 relative" style={{ gridTemplateColumns: `repeat(${employees.length}, 1fr)` }}>
+              {/* Current time line - single red line across all columns */}
+              {(() => {
+                const timeLinePosition = getCurrentTimePosition()
+                if (timeLinePosition !== null && timeLinePosition >= 0 && timeLinePosition <= calendarHeight) {
+                  return (
+                    <div 
+                      className="absolute w-full z-50 pointer-events-none"
+                      style={{ top: `${timeLinePosition + 60}px` }}
+                    >
+                      <div className="relative">
+                        <div className="absolute w-full h-0.5 bg-red-600 shadow-lg shadow-red-500/50"></div>
+                        <div className="absolute -left-2 -top-2 w-4 h-4 bg-red-600 rounded-full shadow-lg shadow-red-500/50"></div>
+                      </div>
+                    </div>
+                  )
+                }
+                return null
+              })()}
+              
               {employees.map(emp => (
                 <div key={emp.id} className="flex flex-col">
                   <div className="font-bold text-center pb-3 border-b-2 border-gray-900 mb-2">

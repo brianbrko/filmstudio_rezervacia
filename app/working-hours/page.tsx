@@ -411,36 +411,22 @@ export default function WorkingHoursPage() {
                   <div key={index} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
                     <div className="w-32 font-bold">{day}</div>
                     
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={hour.is_open}
-                        onChange={(e) => updateDefaultHours(index, 'is_open', e.target.checked)}
-                        disabled={profile?.role === 'employee'}
-                        className="w-5 h-5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                      <span>Otvorené</span>
-                    </label>
-
-                    {hour.is_open && (
-                      <>
-                        <input
-                          type="time"
-                          value={hour.start_time}
-                          onChange={(e) => updateDefaultHours(index, 'start_time', e.target.value)}
-                          disabled={profile?.role === 'employee'}
-                          className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
-                        />
-                        <span>-</span>
-                        <input
-                          type="time"
-                          value={hour.end_time}
-                          onChange={(e) => updateDefaultHours(index, 'end_time', e.target.value)}
-                          disabled={profile?.role === 'employee'}
-                          className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
-                        />
-                      </>
-                    )}
+                    <span className="text-gray-600">Od:</span>
+                    <input
+                      type="time"
+                      value={hour.start_time}
+                      onChange={(e) => updateDefaultHours(index, 'start_time', e.target.value)}
+                      disabled={profile?.role === 'employee'}
+                      className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
+                    />
+                    <span className="text-gray-600">Do:</span>
+                    <input
+                      type="time"
+                      value={hour.end_time}
+                      onChange={(e) => updateDefaultHours(index, 'end_time', e.target.value)}
+                      disabled={profile?.role === 'employee'}
+                      className="p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed"
+                    />
                   </div>
                 )
               })}

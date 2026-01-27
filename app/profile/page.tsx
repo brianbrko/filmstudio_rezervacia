@@ -124,14 +124,36 @@ export default function ProfilePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <p className="text-white text-xl">Načítavam...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+      {/* Animated wave background */}
+      <div className="absolute inset-0 z-0">
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '40%'}}>
+          <path fill="#f59e0b" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" dur="10s" repeatCount="indefinite" values="
+              M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,128L48,133.3C96,139,192,149,288,138.7C384,128,480,96,576,90.7C672,85,768,107,864,128C960,149,1056,171,1152,170.7C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '35%'}}>
+          <path fill="#f59e0b" fillOpacity="0.15" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" dur="15s" repeatCount="indefinite" values="
+              M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,218.7C960,235,1056,245,1152,240C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+      </div>
+      
       {/* Notification */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-[9999] ${
@@ -163,11 +185,13 @@ export default function ProfilePage() {
       )}
 
       {/* Header */}
-      <div className="bg-white text-black p-6 border-b-4 border-black">
+      <div className="bg-gray-900 text-white p-6 border-b-2 border-amber-500/30 relative z-10">
         <div className="max-w-[1400px] mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">👤 Môj profil</h1>
-            <p className="text-gray-600">{profile?.full_name} ({profile?.role === 'admin' ? '👑 Admin' : '👤 Zákazník'})</p>
+          <div className="flex items-center gap-4">
+            <img src="/images/logo.png" alt="Logo" className="w-16 h-16 object-contain" />
+            <div>
+              <p className="text-gray-300">{profile?.full_name} {profile?.role === 'admin' && '(👑 Admin)'}</p>
+            </div>
           </div>
           <div className="flex gap-4">
             <button 
@@ -178,19 +202,19 @@ export default function ProfilePage() {
                   router.push('/calendar')
                 }
               }} 
-              className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+              className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
               📅 Kalendár
             </button>
             {profile?.role === 'customer' && (
               <button 
                 onClick={() => router.push('/reservations')} 
-                className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 📋 Moje rezervácie
               </button>
             )}
             <button 
               onClick={() => {supabase.auth.signOut(); router.push('/login')}} 
-              className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+              className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
               Odhlásiť
             </button>
           </div>
@@ -198,8 +222,8 @@ export default function ProfilePage() {
       </div>
 
       {/* Form */}
-      <div className="max-w-[800px] mx-auto p-6">
-        <div className="bg-white text-black rounded-2xl p-8 border-4 border-gray-900">
+      <div className="max-w-[800px] mx-auto p-6 relative z-10">
+        <div className="bg-gray-800 text-white rounded-2xl p-8 border-2 border-amber-500/30">
           <h2 className="text-2xl font-bold mb-6">Osobné údaje</h2>
           
           <form onSubmit={handleSubmit} className="space-y-6">
@@ -211,7 +235,7 @@ export default function ProfilePage() {
                 value={formData.full_name}
                 onChange={(e) => setFormData({...formData, full_name: e.target.value})}
                 required
-                className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="Vaše meno"
               />
             </div>
@@ -223,7 +247,7 @@ export default function ProfilePage() {
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="+421 123 456 789"
               />
             </div>
@@ -236,16 +260,16 @@ export default function ProfilePage() {
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
                 required
-                className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="email@priklad.sk"
               />
-              <p className="text-sm text-gray-600 mt-1">
+              <p className="text-sm text-gray-400 mt-1">
                 ⚠️ Pri zmene emailu budete odhlásený a musíte potvrdiť nový email
               </p>
             </div>
 
             {/* Oddeľovač */}
-            <div className="border-t-2 border-gray-300 pt-6">
+            <div className="border-t-2 border-amber-500/30 pt-6">
               <h3 className="font-bold text-lg mb-4">Zmena hesla (voliteľné)</h3>
             </div>
 
@@ -256,7 +280,7 @@ export default function ProfilePage() {
                 type="password"
                 value={formData.new_password}
                 onChange={(e) => setFormData({...formData, new_password: e.target.value})}
-                className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="Nechajte prázdne ak nechcete meniť"
                 minLength={6}
               />
@@ -269,7 +293,7 @@ export default function ProfilePage() {
                 type="password"
                 value={formData.confirm_password}
                 onChange={(e) => setFormData({...formData, confirm_password: e.target.value})}
-                className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
+                className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 text-white placeholder-gray-400 focus:border-amber-500 focus:ring-2 focus:ring-amber-500"
                 placeholder="Zopakujte nové heslo"
                 minLength={6}
               />
@@ -279,13 +303,13 @@ export default function ProfilePage() {
             <div className="flex gap-4 pt-4">
               <button
                 type="submit"
-                className="flex-1 px-8 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800">
+                className="flex-1 px-8 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
                 💾 Uložiť zmeny
               </button>
               <button
                 type="button"
                 onClick={() => router.push('/calendar')}
-                className="px-8 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400">
+                className="px-8 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 ✕ Zrušiť
               </button>
             </div>

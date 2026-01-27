@@ -177,14 +177,36 @@ export default function ReservationsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <p className="text-white text-xl">Načítavam rezervácie...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+      {/* Animated wave background */}
+      <div className="absolute inset-0 z-0">
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '40%'}}>
+          <path fill="#f59e0b" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" dur="10s" repeatCount="indefinite" values="
+              M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,128L48,133.3C96,139,192,149,288,138.7C384,128,480,96,576,90.7C672,85,768,107,864,128C960,149,1056,171,1152,170.7C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '35%'}}>
+          <path fill="#f59e0b" fillOpacity="0.15" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" dur="15s" repeatCount="indefinite" values="
+              M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,218.7C960,235,1056,245,1152,240C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+      </div>
+      
       {/* Notification */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-[9999] ${
@@ -216,26 +238,28 @@ export default function ReservationsPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white text-black p-6 border-b-4 border-black">
+      <div className="bg-gray-900 text-white p-6 border-b-2 border-amber-500/30 relative z-10">
         <div className="max-w-[1400px] mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">📋 Moje rezervácie</h1>
-            <p className="text-gray-600">{profile?.full_name}</p>
+          <div className="flex items-center gap-4">
+            <img src="/images/logo.png" alt="Logo" className="w-16 h-16 object-contain" />
+            <div>
+              <p className="text-gray-300">{profile?.full_name}</p>
+            </div>
           </div>
           <div className="flex gap-4">
             <button 
               onClick={() => router.push('/dashboard')} 
-              className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+              className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
               📅 Nová rezervácia
             </button>
             <button 
               onClick={() => router.push('/profile')} 
-              className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+              className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
               👤 Profil
             </button>
             <button 
               onClick={() => {supabase.auth.signOut(); router.push('/login')}} 
-              className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+              className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
               Odhlásiť
             </button>
           </div>
@@ -243,23 +267,23 @@ export default function ReservationsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="max-w-[1400px] mx-auto p-6">
+      <div className="max-w-[1400px] mx-auto p-6 relative z-10">
         <div className="flex gap-4 mb-6">
           <button
             onClick={() => setActiveTab('upcoming')}
-            className={`px-8 py-3 rounded-lg font-bold text-lg border-2 border-black transition-colors ${
+            className={`px-8 py-3 rounded-lg font-bold text-lg border-2 transition-colors ${
               activeTab === 'upcoming'
-                ? 'bg-white text-black'
-                : 'bg-gray-800 text-white hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white border-amber-500 shadow-lg'
+                : 'bg-gray-800 text-white border-amber-500/30 hover:bg-gray-700'
             }`}>
             📅 Nadchádzajúce ({upcomingReservations.length})
           </button>
           <button
             onClick={() => setActiveTab('past')}
-            className={`px-8 py-3 rounded-lg font-bold text-lg border-2 border-black transition-colors ${
+            className={`px-8 py-3 rounded-lg font-bold text-lg border-2 transition-colors ${
               activeTab === 'past'
-                ? 'bg-white text-black'
-                : 'bg-gray-800 text-white hover:bg-gray-700'
+                ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white border-amber-500 shadow-lg'
+                : 'bg-gray-800 text-white border-amber-500/30 hover:bg-gray-700'
             }`}>
             🕐 História ({pastReservations.length})
           </button>
@@ -275,7 +299,7 @@ export default function ReservationsPage() {
                   <p className="text-gray-400 mb-6">Vytvorte si novú rezerváciu v kalendári</p>
                   <button
                     onClick={() => router.push('/dashboard')}
-                    className="px-8 py-3 bg-white text-black rounded-lg font-bold border-2 border-black hover:bg-gray-200">
+                    className="px-8 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                     📅 Vytvoriť rezerváciu
                   </button>
                 </div>
@@ -283,25 +307,25 @@ export default function ReservationsPage() {
                 upcomingReservations.map((reservation) => (
                   <div
                     key={reservation.id}
-                    className="bg-white text-black rounded-2xl p-6 border-4 border-black shadow-lg hover:shadow-xl transition-shadow">
+                    className="bg-gray-800 text-white rounded-2xl p-6 border-2 border-amber-500/30 shadow-lg hover:shadow-xl transition-shadow hover:border-amber-500/50">
                     <div className="flex-1">
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-2xl font-bold">{reservation.service_name}</h3>
                         {getStatusBadge(reservation.status)}
                       </div>
-                      <p className="text-gray-600 text-lg mb-1">
+                      <p className="text-gray-300 text-lg mb-1">
                         👤 {reservation.employee_name}
                       </p>
-                      <p className="text-gray-600 text-lg mb-1">
+                      <p className="text-gray-300 text-lg mb-1">
                         📅 {formatDate(reservation.date)}
                       </p>
-                      <p className="text-gray-600 text-lg">
+                      <p className="text-gray-300 text-lg">
                         🕐 {reservation.start_time} - {reservation.end_time}
                       </p>
                       {reservation.notes && (
-                        <div className="mt-3 p-3 bg-yellow-50 rounded-lg border-2 border-yellow-300">
-                          <p className="text-sm font-bold text-yellow-800 mb-1">💬 Poznámka:</p>
-                          <p className="text-gray-700">{reservation.notes}</p>
+                        <div className="mt-3 p-3 bg-amber-500/10 rounded-lg border-2 border-amber-500/30">
+                          <p className="text-sm font-bold text-amber-400 mb-1">💬 Poznámka:</p>
+                          <p className="text-gray-300">{reservation.notes}</p>
                         </div>
                       )}
                     </div>

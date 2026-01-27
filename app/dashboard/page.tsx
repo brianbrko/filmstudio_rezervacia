@@ -1,9 +1,10 @@
 // @ts-nocheck
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import Image from 'next/image'
 
 interface TimeSlot {
   time: string
@@ -29,6 +30,11 @@ export default function DashboardPage() {
   const [showServiceDropdown, setShowServiceDropdown] = useState(false)
   const [showEmployeeDropdown, setShowEmployeeDropdown] = useState(false)
   const [showDatePicker, setShowDatePicker] = useState(false)
+  
+  // Refs pre dropdowny
+  const datePickerRef = useRef<HTMLDivElement>(null)
+  const serviceDropdownRef = useRef<HTMLDivElement>(null)
+  const employeeDropdownRef = useRef<HTMLDivElement>(null)
   
   const [bookingForm, setBookingForm] = useState({
     phone: '',
@@ -79,15 +85,21 @@ export default function DashboardPage() {
 
   useEffect(() => {
     // Zatvoriť dropdowny pri kliknutí mimo
-    const handleClickOutside = () => {
-      setShowServiceDropdown(false)
-      setShowEmployeeDropdown(false)
-      setShowDatePicker(false)
+    const handleClickOutside = (event: MouseEvent) => {
+      if (datePickerRef.current && !datePickerRef.current.contains(event.target as Node)) {
+        setShowDatePicker(false)
+      }
+      if (serviceDropdownRef.current && !serviceDropdownRef.current.contains(event.target as Node)) {
+        setShowServiceDropdown(false)
+      }
+      if (employeeDropdownRef.current && !employeeDropdownRef.current.contains(event.target as Node)) {
+        setShowEmployeeDropdown(false)
+      }
     }
     
     if (showServiceDropdown || showEmployeeDropdown || showDatePicker) {
-      document.addEventListener('click', handleClickOutside)
-      return () => document.removeEventListener('click', handleClickOutside)
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => document.removeEventListener('mousedown', handleClickOutside)
     }
   }, [showServiceDropdown, showEmployeeDropdown, showDatePicker])
 
@@ -299,7 +311,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <p className="text-white text-xl">Načítavam...</p>
       </div>
     )
@@ -308,7 +320,29 @@ export default function DashboardPage() {
   const selectedServiceData = services.find(s => s.id === selectedService)
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gray-900 text-white relative overflow-hidden">
+      {/* Animated wave background */}
+      <div className="absolute inset-0 z-0">
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '40%'}}>
+          <path fill="#f59e0b" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" dur="10s" repeatCount="indefinite" values="
+              M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,128L48,133.3C96,139,192,149,288,138.7C384,128,480,96,576,90.7C672,85,768,107,864,128C960,149,1056,171,1152,170.7C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+        <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '35%'}}>
+          <path fill="#f59e0b" fillOpacity="0.15" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" dur="15s" repeatCount="indefinite" values="
+              M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,218.7C960,235,1056,245,1152,240C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+              M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"
+            />
+          </path>
+        </svg>
+      </div>
+      
       {notification.show && (
         <div className="fixed top-6 right-6 z-[9999] animate-slide-in-right">
           <div className={`
@@ -346,35 +380,43 @@ export default function DashboardPage() {
         </div>
       )}
       
-      <div className="bg-white text-black p-6 border-b-4 border-black">
+      <div className="bg-gray-900 text-white p-6 border-b-2 border-amber-500/30 relative z-10">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold">✂️ Online rezervácie</h1>
-            <p className="text-gray-600">{profile?.full_name}</p>
+          <div className="flex items-center gap-4">
+            <Image 
+              src="/images/logo.png" 
+              alt="Art Studio Logo" 
+              width={80} 
+              height={80}
+              className="object-contain"
+            />
+            <div>
+              <p className="text-gray-300 text-lg">{profile?.full_name}</p>
+            </div>
           </div>
           <div className="flex gap-4">
             <button 
               onClick={() => router.push('/reservations')} 
-              className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+              className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20">
               📋 Moje rezervácie
             </button>
-            <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+            <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
               👤 Profil
             </button>
-            <button onClick={() => {supabase.auth.signOut(); router.push('/login')}} className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+            <button onClick={() => {supabase.auth.signOut(); router.push('/login')}} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
               Odhlásiť
             </button>
           </div>
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-6">
+      <div className="max-w-6xl mx-auto p-6 relative z-10">
         <div className="grid lg:grid-cols-[1fr] gap-6">
           {/* Filtre v jednom riadku */}
-          <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
+          <div className="bg-gray-800 text-white rounded-2xl p-6 border-2 border-amber-500/30">
             <div className="grid md:grid-cols-3 gap-4">
               {/* Dátum */}
-              <div className="relative">
+              <div className="relative" ref={datePickerRef}>
                 <label className="block font-bold mb-2">📅 Dátum</label>
                 <div
                   onClick={(e) => {
@@ -383,49 +425,59 @@ export default function DashboardPage() {
                     setShowServiceDropdown(false)
                     setShowEmployeeDropdown(false)
                   }}
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium bg-white hover:bg-gray-50 cursor-pointer transition-colors flex justify-between items-center"
+                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center"
                 >
-                  <span>
+                  <span className="text-white">
                     {new Date(selectedDate + 'T00:00:00').toLocaleDateString('sk-SK', { 
                       day: 'numeric', 
                       month: 'long',
                       year: 'numeric'
                     })}
                   </span>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                   </svg>
                 </div>
                 
                 {showDatePicker && (
                   <div 
-                    onClick={(e) => e.stopPropagation()}
-                    className="absolute z-50 w-full mt-2 bg-white border-4 border-gray-900 rounded-lg shadow-2xl p-4"
+                    className="absolute z-50 w-full mt-2 bg-gray-800 border-2 border-amber-500/50 rounded-lg shadow-2xl p-4"
                   >
                     <div className="flex justify-between items-center mb-4">
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           const date = new Date(selectedDate + 'T00:00:00')
-                          date.setDate(date.getDate() - 1)
-                          setSelectedDate(date.toISOString().split('T')[0])
+                          const newDate = new Date(date)
+                          newDate.setMonth(newDate.getMonth() - 1)
+                          
+                          // Kontrola či nový mesiac nie je v minulosti
+                          const today = new Date()
+                          const currentMonth = today.getFullYear() * 12 + today.getMonth()
+                          const newMonth = newDate.getFullYear() * 12 + newDate.getMonth()
+                          
+                          if (newMonth >= currentMonth) {
+                            setSelectedDate(newDate.toISOString().split('T')[0])
+                          }
                         }}
-                        className="p-2 hover:bg-gray-100 rounded-lg font-bold text-xl"
+                        className="p-2 hover:bg-amber-500/20 rounded-lg font-bold text-xl disabled:opacity-30 disabled:cursor-not-allowed text-white"
                       >
                         ←
                       </button>
-                      <span className="font-bold">
+                      <span className="font-bold text-white">
                         {new Date(selectedDate + 'T00:00:00').toLocaleDateString('sk-SK', { 
                           month: 'long',
                           year: 'numeric'
                         })}
                       </span>
                       <button
-                        onClick={() => {
+                        onClick={(e) => {
+                          e.stopPropagation()
                           const date = new Date(selectedDate + 'T00:00:00')
-                          date.setDate(date.getDate() + 1)
+                          date.setMonth(date.getMonth() + 1)
                           setSelectedDate(date.toISOString().split('T')[0])
                         }}
-                        className="p-2 hover:bg-gray-100 rounded-lg font-bold text-xl"
+                        className="p-2 hover:bg-amber-500/20 rounded-lg font-bold text-xl text-white"
                       >
                         →
                       </button>
@@ -433,7 +485,7 @@ export default function DashboardPage() {
                     
                     <div className="grid grid-cols-7 gap-1 mb-2">
                       {['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'].map(day => (
-                        <div key={day} className="text-center text-xs font-bold text-gray-500 p-1">
+                        <div key={day} className="text-center text-xs font-bold text-gray-400 p-1">
                           {day}
                         </div>
                       ))}
@@ -453,24 +505,32 @@ export default function DashboardPage() {
                           days.push(<div key={`empty-${i}`} />)
                         }
                         
+                        const today = new Date().toISOString().split('T')[0]
+                        
                         for (let day = 1; day <= lastDay.getDate(); day++) {
                           const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
                           const isSelected = dateStr === selectedDate
-                          const isToday = dateStr === new Date().toISOString().split('T')[0]
+                          const isToday = dateStr === today
+                          const isPast = dateStr < today
                           
                           days.push(
                             <button
                               key={day}
                               onClick={() => {
-                                setSelectedDate(dateStr)
-                                setShowDatePicker(false)
+                                if (!isPast) {
+                                  setSelectedDate(dateStr)
+                                  setShowDatePicker(false)
+                                }
                               }}
+                              disabled={isPast}
                               className={`p-2 text-center rounded-lg font-medium transition-colors ${
-                                isSelected 
-                                  ? 'bg-black text-white' 
+                                isPast
+                                  ? 'text-gray-600 cursor-not-allowed'
+                                  : isSelected 
+                                  ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold shadow-lg' 
                                   : isToday
-                                  ? 'bg-gray-200 hover:bg-gray-300'
-                                  : 'hover:bg-gray-100'
+                                  ? 'bg-amber-500/20 text-amber-400 hover:bg-amber-500/30 border border-amber-500'
+                                  : 'text-white hover:bg-gray-700'
                               }`}
                             >
                               {day}
@@ -487,7 +547,7 @@ export default function DashboardPage() {
                         setSelectedDate(new Date().toISOString().split('T')[0])
                         setShowDatePicker(false)
                       }}
-                      className="w-full mt-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg font-bold transition-colors"
+                      className="w-full mt-3 py-2 bg-amber-500/20 hover:bg-amber-500/30 text-amber-400 rounded-lg font-bold transition-colors border border-amber-500/50"
                     >
                       Dnes
                     </button>
@@ -496,7 +556,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Služba */}
-              <div className="relative">
+              <div className="relative" ref={serviceDropdownRef}>
                 <label className="block font-bold mb-2">✂️ Služba</label>
                 <div
                   onClick={(e) => {
@@ -504,20 +564,20 @@ export default function DashboardPage() {
                     setShowServiceDropdown(!showServiceDropdown)
                     setShowEmployeeDropdown(false)
                   }}
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium bg-white hover:bg-gray-50 cursor-pointer transition-colors flex justify-between items-center"
+                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center"
                 >
-                  <span className={selectedService ? 'text-black' : 'text-gray-500'}>
+                  <span className={selectedService ? 'text-white' : 'text-gray-400'}>
                     {selectedService 
                       ? services.find(s => s.id === selectedService)?.name + ` - ${services.find(s => s.id === selectedService)?.price}€`
                       : '-- Vyberte službu --'}
                   </span>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
                 
                 {showServiceDropdown && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border-4 border-gray-900 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-2 bg-gray-800 border-2 border-amber-500/50 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
                     <div
                       onClick={(e) => {
                         e.stopPropagation()
@@ -536,12 +596,12 @@ export default function DashboardPage() {
                           setSelectedService(service.id)
                           setShowServiceDropdown(false)
                         }}
-                        className={`p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors ${
-                          selectedService === service.id ? 'bg-black text-white hover:bg-gray-800' : ''
+                        className={`p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors ${
+                          selectedService === service.id ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold' : 'text-white'
                         }`}
                       >
                         <p className="font-bold">{service.name}</p>
-                        <p className="text-sm opacity-70">{service.price}€ • {service.duration_minutes} min</p>
+                        <p className={`text-sm ${selectedService === service.id ? 'text-white/80' : 'text-gray-400'}`}>od {service.price}€ • {service.duration_minutes} min</p>
                       </div>
                     ))}
                   </div>
@@ -549,7 +609,7 @@ export default function DashboardPage() {
               </div>
 
               {/* Zamestnankyňa */}
-              <div className="relative">
+              <div className="relative" ref={employeeDropdownRef}>
                 <label className="block font-bold mb-2">💇‍♀️ Zamestnankyňa</label>
                 <div
                   onClick={(e) => {
@@ -557,28 +617,28 @@ export default function DashboardPage() {
                     setShowEmployeeDropdown(!showEmployeeDropdown)
                     setShowServiceDropdown(false)
                   }}
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium bg-white hover:bg-gray-50 cursor-pointer transition-colors flex justify-between items-center"
+                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center text-white"
                 >
                   <span>
                     {selectedEmployee === 'any' 
                       ? '✨ Je mi jedno'
                       : employees.find(e => e.id === selectedEmployee)?.name}
                   </span>
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
                 
                 {showEmployeeDropdown && (
-                  <div className="absolute z-50 w-full mt-2 bg-white border-4 border-gray-900 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
+                  <div className="absolute z-50 w-full mt-2 bg-gray-800 border-2 border-amber-500/50 rounded-lg shadow-2xl max-h-64 overflow-y-auto">
                     <div
                       onClick={(e) => {
                         e.stopPropagation()
                         setSelectedEmployee('any')
                         setShowEmployeeDropdown(false)
                       }}
-                      className={`p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 transition-colors font-bold ${
-                        selectedEmployee === 'any' ? 'bg-black text-white hover:bg-gray-800' : ''
+                      className={`p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 transition-colors font-bold ${
+                        selectedEmployee === 'any' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white' : 'text-white'
                       }`}
                     >
                       ✨ Je mi jedno
@@ -591,8 +651,8 @@ export default function DashboardPage() {
                           setSelectedEmployee(emp.id)
                           setShowEmployeeDropdown(false)
                         }}
-                        className={`p-3 hover:bg-gray-100 cursor-pointer border-b border-gray-200 last:border-b-0 transition-colors ${
-                          selectedEmployee === emp.id ? 'bg-black text-white hover:bg-gray-800' : ''
+                        className={`p-3 hover:bg-gray-700 cursor-pointer border-b border-gray-700 last:border-b-0 transition-colors ${
+                          selectedEmployee === emp.id ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white font-bold' : 'text-white'
                         }`}
                       >
                         {emp.name}
@@ -605,25 +665,25 @@ export default function DashboardPage() {
           </div>
 
           {/* Voľné časy */}
-          <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
+          <div className="bg-gray-800 text-white rounded-2xl p-6 border-2 border-amber-500/30">
             <h2 className="text-2xl font-bold mb-6">🕐 Dostupné termíny</h2>
             
             {!selectedService ? (
               <div className="text-center py-12">
                 <p className="text-2xl mb-2">👈</p>
-                <p className="text-gray-600">Najprv vyberte službu</p>
+                <p className="text-gray-400">Najprv vyberte službu</p>
               </div>
             ) : availableSlots.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-4xl mb-4">😔</p>
-                <p className="text-xl font-bold mb-2">Žiadne voľné termíny</p>
-                <p className="text-gray-600">Skúste iný deň alebo zamestnankyňu</p>
+                <p className="text-xl font-bold mb-2 text-white">Žiadne voľné termíny</p>
+                <p className="text-gray-400">Skúste iný deň alebo zamestnankyňu</p>
               </div>
             ) : (
               <>
-                <div className="mb-4 p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
-                  <p className="font-bold">📋 Vybraná služba:</p>
-                  <p className="text-lg">{selectedServiceData?.name} - {selectedServiceData?.price}€ ({selectedServiceData?.duration_minutes} min)</p>
+                <div className="mb-4 p-4 bg-amber-500/10 rounded-lg border-2 border-amber-500/30">
+                  <p className="font-bold text-white">📋 Vybraná služba:</p>
+                  <p className="text-lg text-gray-300">{selectedServiceData?.name} - {selectedServiceData?.price}€ ({selectedServiceData?.duration_minutes} min)</p>
                 </div>
                 
                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3">
@@ -631,11 +691,11 @@ export default function DashboardPage() {
                     <button
                       key={idx}
                       onClick={() => handleSlotClick(slot)}
-                      className="p-4 bg-green-100 border-2 border-green-600 rounded-lg hover:bg-green-200 transition-colors"
+                      className="p-4 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 border-2 border-amber-400 rounded-lg hover:from-amber-500 hover:to-amber-700 transition-all text-white shadow-lg hover:shadow-xl hover:scale-105"
                     >
                       <p className="font-bold text-lg">{slot.time}</p>
                       {selectedEmployee === 'any' && (
-                        <p className="text-xs text-gray-600 mt-1">{slot.employee_name}</p>
+                        <p className="text-xs text-white/80 mt-1">{slot.employee_name}</p>
                       )}
                     </button>
                   ))}
@@ -649,10 +709,10 @@ export default function DashboardPage() {
       {/* Booking Modal */}
       {showBookingModal && selectedSlot && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-black rounded-2xl p-6 max-w-2xl w-full border-4 border-gray-900">
+          <div className="bg-gray-800 text-white rounded-2xl p-6 max-w-2xl w-full border-2 border-amber-500/50 shadow-2xl">
             <h2 className="text-2xl font-bold mb-6">✅ Potvrdenie rezervácie</h2>
             
-            <div className="bg-gray-100 p-4 rounded-lg mb-6">
+            <div className="bg-amber-500/10 p-4 rounded-lg mb-6 border-2 border-amber-500/30">
               <p><strong>Dátum:</strong> {new Date(selectedDate + 'T00:00:00').toLocaleDateString('sk-SK')}</p>
               <p><strong>Čas:</strong> {selectedSlot.time}</p>
               <p><strong>Služba:</strong> {selectedServiceData?.name} ({selectedServiceData?.price}€)</p>
@@ -666,7 +726,7 @@ export default function DashboardPage() {
                   <select
                     value={bookingForm.title}
                     onChange={(e) => setBookingForm({...bookingForm, title: e.target.value})}
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white"
                   >
                     <option>Pán</option>
                     <option>Pani</option>
@@ -679,7 +739,7 @@ export default function DashboardPage() {
                     value={bookingForm.phone}
                     onChange={(e) => setBookingForm({...bookingForm, phone: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -692,7 +752,7 @@ export default function DashboardPage() {
                     value={bookingForm.first_name}
                     onChange={(e) => setBookingForm({...bookingForm, first_name: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
                   />
                 </div>
                 <div>
@@ -702,7 +762,7 @@ export default function DashboardPage() {
                     value={bookingForm.last_name}
                     onChange={(e) => setBookingForm({...bookingForm, last_name: e.target.value})}
                     required
-                    className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                    className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
                   />
                 </div>
               </div>
@@ -714,7 +774,7 @@ export default function DashboardPage() {
                   value={bookingForm.email}
                   onChange={(e) => setBookingForm({...bookingForm, email: e.target.value})}
                   required
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
                 />
               </div>
 
@@ -723,7 +783,7 @@ export default function DashboardPage() {
                 <textarea
                   value={bookingForm.notes}
                   onChange={(e) => setBookingForm({...bookingForm, notes: e.target.value})}
-                  className="w-full p-3 border-2 border-gray-900 rounded-lg"
+                  className="w-full p-3 border-2 border-amber-500/50 rounded-lg bg-gray-900 text-white placeholder-gray-400"
                   rows={3}
                 />
               </div>
@@ -732,13 +792,13 @@ export default function DashboardPage() {
                 <button
                   type="button"
                   onClick={() => setShowBookingModal(false)}
-                  className="flex-1 px-6 py-3 bg-gray-300 rounded-lg font-bold hover:bg-gray-400"
+                  className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-gray-600"
                 >
                   Zrušiť
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30"
                 >
                   ✅ Potvrdiť rezerváciu
                 </button>
