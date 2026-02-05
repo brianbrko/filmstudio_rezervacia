@@ -274,7 +274,7 @@ export default function WorkingHoursPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <p className="text-white text-xl">Načítavam...</p>
       </div>
     )
@@ -283,7 +283,7 @@ export default function WorkingHoursPage() {
   const selectedEmpHours = employeeHours.filter(h => h.employee_id === selectedEmployee)
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       {/* Notification */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-[9999] ${
@@ -317,9 +317,9 @@ export default function WorkingHoursPage() {
       {/* Confirmation Modal */}
       {confirmModal.show && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white text-black rounded-2xl p-4 sm:p-8 max-w-md w-full border-2 sm:border-4 border-black shadow-2xl">
+          <div className="bg-gray-900 text-white rounded-2xl p-4 sm:p-8 max-w-md w-full border-2 sm:border-4 border-amber-500/50 shadow-2xl">
             <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{confirmModal.title}</h3>
-            <p className="text-gray-700 mb-4 sm:mb-6 text-base sm:text-lg">{confirmModal.message}</p>
+            <p className="text-gray-300 mb-4 sm:mb-6 text-base sm:text-lg">{confirmModal.message}</p>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <button
                 onClick={handleConfirmAction}
@@ -328,7 +328,7 @@ export default function WorkingHoursPage() {
               </button>
               <button
                 onClick={handleCancelConfirmation}
-                className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 text-sm sm:text-base">
+                className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-amber-500/30 text-sm sm:text-base">
                 Zrušiť
               </button>
             </div>
@@ -337,21 +337,21 @@ export default function WorkingHoursPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white text-black p-4 sm:p-6 border-b-2 sm:border-b-4 border-black">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 border-b-2 sm:border-b-4 border-amber-500/50">
         <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">⏰ Správa pracovných hodín</h1>
-            <p className="text-gray-600 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
+            <p className="text-gray-300 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
             <button 
               onClick={() => router.push('/calendar')} 
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-sm sm:text-base">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
               📅 Kalendár
             </button>
             <button 
               onClick={() => setShowLogoutModal(true)} 
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm sm:text-base">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
               Odhlásiť
             </button>
           </div>
@@ -371,33 +371,33 @@ export default function WorkingHoursPage() {
         <div className="flex flex-wrap gap-2 sm:gap-4 mb-4 sm:mb-6">
           <button
             onClick={() => setActiveTab('default')}
-            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'default' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'default' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
             🏪 Otváracie hodiny
           </button>
           <button
             onClick={() => setActiveTab('employees')}
-            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'employees' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'employees' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
             👥 Pracovné hodiny zamestnankyň
           </button>
           <button
             onClick={() => setActiveTab('special')}
-            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'special' ? 'bg-white text-black' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'special' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
             📆 Špeciálne dni
           </button>
         </div>
 
         {/* Default hours */}
         {activeTab === 'default' && (
-          <div className="bg-white text-black rounded-2xl p-8 border-4 border-gray-900">
+          <div className="bg-gray-800 text-white rounded-2xl p-8 border-4 border-amber-500/30">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold">Predvolené otváracie hodiny</h2>
-                <p className="text-gray-600">Nastavte základné otváracie hodiny pre váš salón</p>
+                <p className="text-gray-300">Nastavte základné otváracie hodiny pre váš salón</p>
               </div>
               {hasUnsavedChanges && profile?.role === 'admin' && (
                 <button
                   onClick={saveDefaultHours}
-                  className="px-8 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors flex items-center gap-2"
+                  className="px-8 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg transition-colors flex items-center gap-2"
                 >
                   💾 Uložiť zmeny
                 </button>
@@ -410,25 +410,25 @@ export default function WorkingHoursPage() {
                 if (!hour) return null
 
                 return (
-                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-700 rounded-lg border-2 border-amber-500/30">
                     <div className="w-full sm:w-32 font-bold text-sm sm:text-base">{day}</div>
                     
                     <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-                      <span className="text-gray-600 text-xs sm:text-sm">Od:</span>
+                      <span className="text-gray-300 text-xs sm:text-sm">Od:</span>
                       <input
                         type="time"
                         value={hour.start_time}
                         onChange={(e) => updateDefaultHours(index, 'start_time', e.target.value)}
                         disabled={profile?.role === 'employee'}
-                        className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
+                        className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
                       />
-                      <span className="text-gray-600 text-xs sm:text-sm">Do:</span>
+                      <span className="text-gray-300 text-xs sm:text-sm">Do:</span>
                       <input
                         type="time"
                         value={hour.end_time}
                         onChange={(e) => updateDefaultHours(index, 'end_time', e.target.value)}
                         disabled={profile?.role === 'employee'}
-                        className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
+                        className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
                       />
                     </div>
                   </div>
@@ -440,7 +440,7 @@ export default function WorkingHoursPage() {
 
         {/* Employee hours */}
         {activeTab === 'employees' && (
-          <div className="bg-white text-black rounded-2xl p-8 border-4 border-gray-900">
+          <div className="bg-gray-800 text-white rounded-2xl p-8 border-4 border-amber-500/30">
             <h2 className="text-2xl font-bold mb-6">Pracovné hodiny zamestnankýň</h2>
             
             {/* Select employee */}
@@ -449,7 +449,7 @@ export default function WorkingHoursPage() {
               <select
                 value={selectedEmployee}
                 onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg font-medium text-sm sm:text-base">
+                className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg font-medium text-sm sm:text-base bg-gray-700 text-white">
                 {employees.map(emp => (
                   <option key={emp.id} value={emp.id}>{emp.name} - {emp.position}</option>
                 ))}
@@ -463,7 +463,7 @@ export default function WorkingHoursPage() {
                 const defaultHour = defaultHours.find(h => h.day_of_week === index)
 
                 return (
-                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-700 rounded-lg border-2 border-amber-500/30">
                     <div className="w-full sm:w-32 font-bold text-sm sm:text-base">{day}</div>
                     
                     <label className="flex items-center gap-2 cursor-pointer text-sm sm:text-base">
@@ -484,7 +484,7 @@ export default function WorkingHoursPage() {
                           value={hour?.start_time || defaultHour?.start_time || '08:00'}
                           onChange={(e) => updateEmployeeHours(index, 'start_time', e.target.value)}
                           disabled={profile?.role === 'employee'}
-                          className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
+                          className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
                         />
                         <span className="text-xs sm:text-sm">-</span>
                         <input
@@ -492,7 +492,7 @@ export default function WorkingHoursPage() {
                           value={hour?.end_time || defaultHour?.end_time || '18:00'}
                           onChange={(e) => updateEmployeeHours(index, 'end_time', e.target.value)}
                           disabled={profile?.role === 'employee'}
-                          className="px-2 py-1 sm:p-2 border-2 border-gray-900 rounded font-medium disabled:bg-gray-200 disabled:cursor-not-allowed text-sm sm:text-base"
+                          className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
                         />
                       </div>
                     )}
@@ -505,16 +505,16 @@ export default function WorkingHoursPage() {
 
         {/* Special days */}
         {activeTab === 'special' && (
-          <div className="bg-white text-black rounded-2xl p-8 border-4 border-gray-900">
+          <div className="bg-gray-800 text-white rounded-2xl p-8 border-4 border-amber-500/30">
             <div className="flex justify-between items-center mb-6">
               <div>
                 <h2 className="text-2xl font-bold">Špeciálne dni</h2>
-                <p className="text-gray-600">Sviatky, výnimky, atď.</p>
+                <p className="text-gray-300">Sviatky, výnimky, atď.</p>
               </div>
               {profile?.role === 'admin' && (
                 <button
                   onClick={() => setShowAddSpecial(true)}
-                  className="px-6 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800">
+                  className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                   ➕ Pridať špeciálny deň
                 </button>
               )}
@@ -522,7 +522,7 @@ export default function WorkingHoursPage() {
 
             {/* Add form */}
             {showAddSpecial && (
-              <form onSubmit={addSpecialDay} className="mb-6 p-4 sm:p-6 bg-gray-50 rounded-lg border-2 border-gray-900">
+              <form onSubmit={addSpecialDay} className="mb-6 p-4 sm:p-6 bg-gray-700 rounded-lg border-2 border-amber-500/30">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
                     <label className="block font-bold mb-2 text-sm sm:text-base">Dátum *</label>
@@ -531,7 +531,7 @@ export default function WorkingHoursPage() {
                       value={specialForm.date}
                       onChange={(e) => setSpecialForm({...specialForm, date: e.target.value})}
                       required
-                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
                     />
                   </div>
 
@@ -554,7 +554,7 @@ export default function WorkingHoursPage() {
                         type="time"
                         value={specialForm.start_time}
                         onChange={(e) => setSpecialForm({...specialForm, start_time: e.target.value})}
-                        className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
+                        className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
                       />
                     </div>
 
@@ -564,7 +564,7 @@ export default function WorkingHoursPage() {
                         type="time"
                         value={specialForm.end_time}
                         onChange={(e) => setSpecialForm({...specialForm, end_time: e.target.value})}
-                        className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
+                        className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
                       />
                     </div>
                   </div>
@@ -577,15 +577,15 @@ export default function WorkingHoursPage() {
                     value={specialForm.note}
                     onChange={(e) => setSpecialForm({...specialForm, note: e.target.value})}
                     placeholder="Napr. Vianočné sviatky"
-                    className="w-full px-3 py-2 sm:p-3 border-2 border-gray-900 rounded-lg text-sm sm:text-base"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
                   />
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
-                  <button type="submit" className="px-4 sm:px-6 py-2 sm:py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm sm:text-base">
+                  <button type="submit" className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
                     Uložiť
                   </button>
-                  <button type="button" onClick={() => setShowAddSpecial(false)} className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 rounded-lg font-bold hover:bg-gray-400 text-sm sm:text-base">
+                  <button type="button" onClick={() => setShowAddSpecial(false)} className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-500 border-2 border-amber-500/30 text-sm sm:text-base">
                     Zrušiť
                   </button>
                 </div>
@@ -595,15 +595,15 @@ export default function WorkingHoursPage() {
             {/* List */}
             <div className="space-y-3">
               {specialDays.map(day => (
-                <div key={day.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg border-2 border-gray-300">
+                <div key={day.id} className="flex items-center justify-between p-4 bg-gray-700 rounded-lg border-2 border-amber-500/30">
                   <div>
                     <p className="font-bold">{new Date(day.date).toLocaleDateString('sk-SK')}</p>
                     {day.is_closed ? (
-                      <p className="text-red-600 font-bold">🚫 Zatvorené</p>
+                      <p className="text-red-400 font-bold">🚫 Zatvorené</p>
                     ) : (
-                      <p className="text-gray-600">{day.start_time} - {day.end_time}</p>
+                      <p className="text-gray-300">{day.start_time} - {day.end_time}</p>
                     )}
-                    {day.note && <p className="text-sm text-gray-500">{day.note}</p>}
+                    {day.note && <p className="text-sm text-gray-400">{day.note}</p>}
                   </div>
                   {profile?.role === 'admin' && (
                     <button
@@ -622,16 +622,16 @@ export default function WorkingHoursPage() {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-black rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-black max-w-md w-full shadow-2xl">
+          <div className="bg-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6 sm:mb-8">
               <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
-              <p className="text-base sm:text-lg lg:text-xl text-gray-700">Naozaj sa chcete odhlásiť?</p>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-white text-black border-2 border-black rounded-xl sm:rounded-2xl hover:bg-gray-100 transition-all"
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-gray-700 text-white border-2 border-amber-500/30 rounded-xl sm:rounded-2xl hover:bg-gray-600 transition-all"
               >
                 Zrušiť
               </button>
@@ -640,7 +640,7 @@ export default function WorkingHoursPage() {
                   supabase.auth.signOut()
                   router.push('/login')
                 }}
-                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-black text-white rounded-xl sm:rounded-2xl hover:bg-gray-800 transition-all"
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl hover:from-amber-500 hover:to-amber-700 shadow-lg transition-all"
               >
                 Áno, odhlásiť
               </button>

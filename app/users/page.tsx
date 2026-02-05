@@ -165,6 +165,19 @@ export default function UsersPage() {
       'Vymazať používateľa?',
       `Naozaj chcete vymazať používateľa "${userName}"?\n\nTáto akcia je nevratná a vymaže:\n- Profil používateľa\n- Všetky jeho rezervácie`,
       async () => {
+        // Najprv zablokovať používateľa (odhlási ho ak je prihlásený)
+        const { error: blockError } = await supabase
+          .from('user_profiles')
+          .update({ is_blocked: true })
+          .eq('id', userId)
+
+        if (blockError) {
+          console.error('Chyba pri blokovaní používateľa:', blockError)
+        }
+
+        // Počkať chvíľu aby sa používateľ odhlásil
+        await new Promise(resolve => setTimeout(resolve, 1000))
+
         // Najprv vymaž rezervácie
         const { error: reservationsError } = await supabase
           .from('reservations')
@@ -251,14 +264,14 @@ export default function UsersPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
         <p className="text-white text-xl">Načítavam...</p>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
       {/* Notification */}
       {notification.show && (
         <div className={`fixed top-4 right-4 z-[9999] ${
@@ -292,9 +305,9 @@ export default function UsersPage() {
       {/* Confirmation Modal */}
       {confirmModal.show && (
         <div className="fixed inset-0 z-[10000] flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="bg-white text-black rounded-2xl p-4 sm:p-8 max-w-md w-full border-2 sm:border-4 border-black shadow-2xl">
+          <div className="bg-gray-900 text-white rounded-2xl p-4 sm:p-8 max-w-md w-full border-2 sm:border-4 border-amber-500/50 shadow-2xl">
             <h3 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">{confirmModal.title}</h3>
-            <p className="text-gray-700 mb-4 sm:mb-6 text-base sm:text-lg whitespace-pre-line">{confirmModal.message}</p>
+            <p className="text-gray-300 mb-4 sm:mb-6 text-base sm:text-lg whitespace-pre-line">{confirmModal.message}</p>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-4">
               <button
                 onClick={handleConfirmAction}
@@ -303,7 +316,7 @@ export default function UsersPage() {
               </button>
               <button
                 onClick={handleCancelConfirmation}
-                className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 text-sm sm:text-base">
+                className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-amber-500/30 text-sm sm:text-base">
                 Zrušiť
               </button>
             </div>
@@ -312,21 +325,21 @@ export default function UsersPage() {
       )}
 
       {/* Header */}
-      <div className="bg-white text-black p-4 sm:p-6 border-b-2 sm:border-b-4 border-black">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 border-b-2 sm:border-b-4 border-amber-500/50">
         <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold">👥 Správa používateľov</h1>
-            <p className="text-gray-600 text-sm sm:text-base">Admin panel - Celkom {users.length} používateľov</p>
+            <p className="text-gray-300 text-sm sm:text-base">Admin panel - Celkom {users.length} používateľov</p>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
             <button 
               onClick={() => router.push('/calendar')} 
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-sm sm:text-base">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
               📅 Kalendár
             </button>
             <button 
               onClick={() => setShowLogoutModal(true)} 
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm sm:text-base">
+              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
               Odhlásiť
             </button>
           </div>
@@ -348,7 +361,7 @@ export default function UsersPage() {
             onClick={() => handleFilterChange('all')}
             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold transition-colors text-sm sm:text-base ${
               filter === 'all'
-                ? 'bg-white text-black border-2 sm:border-4 border-gray-900'
+                ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg'
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
@@ -358,7 +371,7 @@ export default function UsersPage() {
             onClick={() => handleFilterChange('active')}
             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold transition-colors text-sm sm:text-base ${
               filter === 'active'
-                ? 'bg-white text-black border-2 sm:border-4 border-gray-900'
+                ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg'
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
@@ -368,7 +381,7 @@ export default function UsersPage() {
             onClick={() => handleFilterChange('blocked')}
             className={`px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold transition-colors text-sm sm:text-base ${
               filter === 'blocked'
-                ? 'bg-white text-black border-2 sm:border-4 border-gray-900'
+                ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg'
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
@@ -381,12 +394,12 @@ export default function UsersPage() {
           {filteredUsers.map((user) => (
             <div 
               key={user.id} 
-              className={`bg-white text-black rounded-2xl p-4 sm:p-6 border-2 sm:border-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 ${
+              className={`bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 sm:border-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0 ${
                 user.id === currentUserId 
-                  ? 'border-blue-500 bg-blue-50' 
+                  ? 'border-amber-500 bg-gray-900/50' 
                   : user.is_blocked 
-                  ? 'border-red-500' 
-                  : 'border-gray-900'
+                  ? 'border-red-500/50' 
+                  : 'border-amber-500/30'
               }`}
             >
               {/* User Info */}
@@ -395,10 +408,10 @@ export default function UsersPage() {
                   <h3 className="text-lg sm:text-xl font-bold flex items-center gap-2">
                     {user.full_name}
                     {user.id === currentUserId && (
-                      <span className="text-xs px-2 py-1 bg-blue-500 text-white rounded">Vy</span>
+                      <span className="text-xs px-2 py-1 bg-amber-500 text-white rounded">Vy</span>
                     )}
                   </h3>
-                  <p className="text-xs sm:text-sm text-gray-600">{user.phone || 'Bez telefónu'}</p>
+                  <p className="text-xs sm:text-sm text-gray-300">{user.phone || 'Bez telefónu'}</p>
                 </div>
                 
                 <div className="flex flex-wrap items-center gap-2">
@@ -418,7 +431,7 @@ export default function UsersPage() {
                   }`}>
                     {user.is_blocked ? '🚫 Zablokovaný' : '✅ Aktívny'}
                   </span>
-                  <p className="text-xs sm:text-sm text-gray-600 whitespace-nowrap">
+                  <p className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
                     📅 {new Date(user.created_at).toLocaleDateString('sk-SK')}
                   </p>
                 </div>
@@ -430,7 +443,7 @@ export default function UsersPage() {
                   <select
                     value={user.role}
                     onChange={(e) => changeRole(user.id, e.target.value as 'customer' | 'employee' | 'admin')}
-                    className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border-2 border-gray-900 rounded-lg font-bold bg-white text-black hover:bg-gray-50 cursor-pointer text-xs sm:text-sm"
+                    className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border-2 border-amber-500/30 rounded-lg font-bold bg-gray-700 text-white hover:bg-gray-600 cursor-pointer text-xs sm:text-sm"
                   >
                     <option value="customer">👤 Zákazník</option>
                     <option value="employee">💼 Zamestnanec</option>
@@ -457,8 +470,8 @@ export default function UsersPage() {
               
               {/* Employee Permissions */}
               {user.role === 'employee' && user.id !== currentUserId && (
-                <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t-2 border-gray-200 w-full">
-                  <h4 className="font-bold text-xs sm:text-sm mb-2 sm:mb-3 text-gray-700">🔐 Oprávnenia zamestnanca:</h4>
+                <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t-2 border-amber-500/30 w-full">
+                  <h4 className="font-bold text-xs sm:text-sm mb-2 sm:mb-3 text-gray-300">🔐 Oprávnenia zamestnanca:</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -513,8 +526,8 @@ export default function UsersPage() {
         </div>
 
         {filteredUsers.length === 0 && (
-          <div className="bg-white text-black rounded-2xl p-8 sm:p-12 border-2 sm:border-4 border-gray-900 text-center">
-            <p className="text-lg sm:text-xl text-gray-500">
+          <div className="bg-gray-800 text-white rounded-2xl p-8 sm:p-12 border-2 sm:border-4 border-amber-500/30 text-center">
+            <p className="text-lg sm:text-xl text-gray-300">
               {filter === 'blocked' ? 'Žiadni zablokovaní používatelia' : 
                filter === 'active' ? 'Žiadni aktívni používatelia' : 
                'Žiadni používatelia'}
@@ -526,16 +539,16 @@ export default function UsersPage() {
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-black rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-black max-w-md w-full shadow-2xl">
+          <div className="bg-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6 sm:mb-8">
               <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
-              <p className="text-base sm:text-lg lg:text-xl text-gray-700">Naozaj sa chcete odhlásiť?</p>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
             </div>
             <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-white text-black border-2 border-black rounded-xl sm:rounded-2xl hover:bg-gray-100 transition-all"
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-gray-700 text-white border-2 border-amber-500/30 rounded-xl sm:rounded-2xl hover:bg-gray-600 transition-all"
               >
                 Zrušiť
               </button>
@@ -544,7 +557,7 @@ export default function UsersPage() {
                   supabase.auth.signOut()
                   router.push('/login')
                 }}
-                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-black text-white rounded-xl sm:rounded-2xl hover:bg-gray-800 transition-all"
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl hover:from-amber-500 hover:to-amber-700 shadow-lg transition-all"
               >
                 Áno, odhlásiť
               </button>

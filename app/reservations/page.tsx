@@ -71,6 +71,13 @@ export default function ReservationsPage() {
       return
     }
 
+    // Kontrola či je používateľ zablokovaný
+    if (profileData.is_blocked) {
+      await supabase.auth.signOut()
+      router.push('/login?blocked=true')
+      return
+    }
+
     // Redirect admins and employees to calendar
     if (profileData.role === 'admin' || profileData.role === 'employee') {
       router.push('/calendar')

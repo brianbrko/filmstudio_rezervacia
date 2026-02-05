@@ -58,6 +58,13 @@ export default function ProfilePage() {
       .single()
 
     if (profileData) {
+      // Kontrola či je používateľ zablokovaný
+      if (profileData.is_blocked) {
+        await supabase.auth.signOut()
+        router.push('/login?blocked=true')
+        return
+      }
+
       setProfile(profileData)
       setFormData({
         full_name: profileData.full_name || '',

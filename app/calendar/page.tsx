@@ -93,6 +93,27 @@ export default function CalendarPage() {
   // Logout modal state
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   
+  // Event type selection modal (pri kliknutí na prázdne pole)
+  const [showEventTypeModal, setShowEventTypeModal] = useState(false)
+  const [pendingEventData, setPendingEventData] = useState<{
+    employee_id: string
+    reservation_date: string
+    start_time: string
+    end_time: string
+  } | null>(null)
+  
+  // Booking modal state (pre admin/zamestnanec pridávanie rezervácií)
+  const [showBookingModal, setShowBookingModal] = useState(false)
+  const [bookingData, setBookingData] = useState({
+    service_id: '',
+    employee_id: '',
+    reservation_date: '',
+    start_time: '',
+    customer_name: '',
+    customer_email: '',
+    customer_phone: ''
+  })
+  
   // Helper na zobrazenie notifikácie
   const showNotification = (type: 'error' | 'success' | 'warning' | 'info', message: string, title?: string) => {
     setNotification({ show: true, type, message, title })
@@ -154,6 +175,35 @@ export default function CalendarPage() {
     if (profile) fetchData()
   }, [profile, selectedDate])
   
+  // Real-time updates - poslučuj zmeny v rezerváciách
+  useEffect(() => {
+    if (!profile) return
+    
+    const dateStr = formatDateToString(selectedDate)
+    
+    // Subscribe to reservation changes for current date
+    const reservationSubscription = supabase
+      .channel('reservations-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*', // INSERT, UPDATE, DELETE
+          schema: 'public',
+          table: 'reservations',
+          filter: `reservation_date=eq.${dateStr}`
+        },
+        (payload) => {
+          console.log('🔄 Real-time zmena v rezerváciách:', payload)
+          fetchData() // Automaticky obnov dáta
+        }
+      )
+      .subscribe()
+    
+    return () => {
+      reservationSubscription.unsubscribe()
+    }
+  }, [profile, selectedDate])
+  
   // Update current time every minute
   useEffect(() => {
     const timer = setInterval(() => {
@@ -173,6 +223,13 @@ export default function CalendarPage() {
       .select('*')
       .eq('id', user.id)
       .single()
+    
+    // Kontrola či je používateľ zablokovaný
+    if (profileData?.is_blocked) {
+      await supabase.auth.signOut()
+      router.push('/login?blocked=true')
+      return
+    }
     
     setProfile(profileData)
     setLoading(false)
@@ -1130,19 +1187,19 @@ export default function CalendarPage() {
       {/* Confirmation Modal */}
       {confirmModal.show && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[10000] p-4">
-          <div className="bg-white rounded-2xl border-4 border-black max-w-md w-full p-6 shadow-2xl">
-            <h3 className="text-2xl font-bold text-black mb-3">{confirmModal.title}</h3>
-            <p className="text-gray-700 text-lg mb-6">{confirmModal.message}</p>
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl border-4 border-amber-500/50 max-w-md w-full p-6 shadow-2xl">
+            <h3 className="text-2xl font-bold mb-3">{confirmModal.title}</h3>
+            <p className="text-gray-300 text-lg mb-6">{confirmModal.message}</p>
             <div className="flex gap-3 justify-end">
               <button
                 onClick={handleCancelConfirmAction}
-                className="px-6 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors"
+                className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition-colors border-2 border-amber-500/30"
               >
                 ✕ Zrušiť
               </button>
               <button
                 onClick={handleConfirmAction}
-                className="px-6 py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors"
+                className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-bold hover:from-red-600 hover:to-red-700 transition-colors shadow-lg"
               >
                 🗑️ Potvrdiť
               </button>
@@ -1151,18 +1208,18 @@ export default function CalendarPage() {
         </div>
       )}
       
-      <div className="bg-white text-black p-4 sm:p-6 border-b-4 border-black">
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 border-b-4 border-amber-500/50">
         <div className="max-w-[1800px] mx-auto">
           <div className="flex justify-between items-center">
             <div>
               <h1 className="text-xl sm:text-3xl font-bold">📅 Kalendár</h1>
-              <p className="text-gray-600 text-sm sm:text-base">{profile?.full_name} ({profile?.role === 'admin' ? '👑 Admin' : profile?.role === 'employee' ? '👔 Zamestnanec' : '👤 Zákazník'})</p>
+              <p className="text-gray-300 text-sm sm:text-base">{profile?.full_name} ({profile?.role === 'admin' ? '👑 Admin' : profile?.role === 'employee' ? '👔 Zamestnanec' : '👤 Zákazník'})</p>
             </div>
             
             {/* Hamburger button - visible on mobile */}
             <button 
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-2xl hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
             >
               {isMobileMenuOpen ? '✕' : '☰'}
             </button>
@@ -1171,32 +1228,32 @@ export default function CalendarPage() {
             <div className="hidden lg:flex gap-4">
               {/* Služby - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
-                <button onClick={() => router.push('/services')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                <button onClick={() => router.push('/services')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                   ⚙️ Služby
                 </button>
               )}
               {/* Pracovné hodiny - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
-                <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                   ⏰ Pracovné hodiny
                 </button>
               )}
               {/* Štatistiky - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
-                <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                   📊 Štatistiky
                 </button>
               )}
               {/* Používatelia - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
-                <button onClick={() => router.push('/users')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+                <button onClick={() => router.push('/users')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                   👥 Používatelia
                 </button>
               )}
-              <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800">
+              <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
                 👤 Profil
               </button>
-              <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
+              <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 Odhlásiť
               </button>
             </div>
@@ -1206,29 +1263,29 @@ export default function CalendarPage() {
           {isMobileMenuOpen && (
             <div className="lg:hidden mt-4 space-y-2 pb-2">
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
-                <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
                   ⚙️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
-                <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
                   ⏰ Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
-                <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
                   📊 Štatistiky
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
-                <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+                <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
                   👥 Používatelia
                 </button>
               )}
-              <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-black text-white rounded-lg font-bold border-2 border-black hover:bg-gray-800 text-left">
+              <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
                 👤 Profil
               </button>
-              <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-left">
+              <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
                 Odhlásiť
               </button>
             </div>
@@ -1408,9 +1465,29 @@ export default function CalendarPage() {
             </div>
           </div>
 
-          {/* Súkromný termín tlačidlo - len pre desktop (admin a zamestnancov) */}
+          {/* Tlačidlá pre pridávanie eventov - len pre desktop (admin a zamestnancov) */}
           {(profile?.role === 'admin' || profile?.role === 'employee') && (
-            <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900">
+            <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900 space-y-4">
+              {/* Nová rezervácia - admin aj zamestnanci */}
+              <button
+                onClick={() => {
+                  setBookingData({
+                    service_id: services[0]?.id || '',
+                    employee_id: employees[0]?.id || '',
+                    reservation_date: formatDateToString(selectedDate),
+                    start_time: '09:00',
+                    customer_name: '',
+                    customer_email: '',
+                    customer_phone: ''
+                  })
+                  setShowBookingModal(true)
+                }}
+                className="w-full py-4 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl font-bold text-xl hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg">
+                <span className="text-3xl">📅</span>
+                <span>Nová rezervácia</span>
+              </button>
+              
+              {/* Súkromný termín - admin aj zamestnanci */}
               <button
                 onClick={() => {
                   setPrivateForm({
@@ -1427,8 +1504,8 @@ export default function CalendarPage() {
                 <span>Súkromný termín</span>
               </button>
               
-              <p className="text-sm text-gray-600 mt-4 text-center">
-                Kliknite na bielu plochu v rozvrhu<br/>alebo použite toto tlačidlo
+              <p className="text-sm text-gray-600 text-center">
+                Kliknite na bielu plochu v rozvrhu<br/>alebo použite tieto tlačidlá
               </p>
             </div>
           )}
@@ -1500,16 +1577,14 @@ export default function CalendarPage() {
                         const endMinutes = totalMinutes + 60
                         const endTime = minutesToTime(endMinutes)
                         
-                        // Otvor súkromný termín modal s predvyplnenými údajmi
-                        setPrivateForm({
+                        // Ulož údaje pre modal a zobraz výber typu eventu
+                        setPendingEventData({
                           employee_id: emp.id,
                           reservation_date: formatDateToString(selectedDate),
                           start_time: clickTime,
-                          end_time: endTime,
-                          notes: ''
+                          end_time: endTime
                         })
-                        setEditingPrivateEvent(null) // Nový termín, nie editácia
-                        setShowPrivateModal(true)
+                        setShowEventTypeModal(true)
                       }
                     }}
                     className="relative border-2 border-gray-300 rounded-lg bg-gray-50 cursor-pointer"
@@ -1916,6 +1991,79 @@ export default function CalendarPage() {
         </div>
       )}
       
+      {/* Event Type Selection Modal */}
+      {showEventTypeModal && pendingEventData && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4"
+             onClick={(e) => {
+               if (e.target === e.currentTarget) {
+                 setShowEventTypeModal(false)
+                 setPendingEventData(null)
+               }
+             }}>
+          <div className="bg-white text-black rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-gray-900 max-w-lg w-full shadow-2xl"
+               onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">📅</div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Vybrať typ eventu</h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-700">Čo chcete pridať do kalendára?</p>
+            </div>
+            
+            <div className="space-y-3 sm:space-y-4">
+              {/* Nová rezervácia - admin aj zamestnanci */}
+              <button
+                onClick={() => {
+                  setBookingData({
+                    service_id: services[0]?.id || '',
+                    employee_id: pendingEventData.employee_id,
+                    reservation_date: pendingEventData.reservation_date,
+                    start_time: pendingEventData.start_time,
+                    customer_name: '',
+                    customer_email: '',
+                    customer_phone: ''
+                  })
+                  setShowBookingModal(true)
+                  setShowEventTypeModal(false)
+                  setPendingEventData(null)
+                }}
+                className="w-full py-4 sm:py-5 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg">
+                <span className="text-2xl sm:text-3xl">📅</span>
+                <span>Nová rezervácia</span>
+              </button>
+              
+              {/* Súkromný termín - admin aj zamestnanci */}
+              <button
+                onClick={() => {
+                  setPrivateForm({
+                    employee_id: pendingEventData.employee_id,
+                    reservation_date: pendingEventData.reservation_date,
+                    start_time: pendingEventData.start_time,
+                    end_time: pendingEventData.end_time,
+                    notes: ''
+                  })
+                  setEditingPrivateEvent(null)
+                  setShowPrivateModal(true)
+                  setShowEventTypeModal(false)
+                  setPendingEventData(null)
+                }}
+                className="w-full py-4 sm:py-5 bg-purple-600 text-white rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl hover:bg-purple-700 transition-all flex items-center justify-center gap-3 shadow-lg">
+                <span className="text-2xl sm:text-3xl">🔒</span>
+                <span>Súkromný termín</span>
+              </button>
+              
+              {/* Zrušiť */}
+              <button
+                onClick={() => {
+                  setShowEventTypeModal(false)
+                  setPendingEventData(null)
+                }}
+                className="w-full py-3 sm:py-4 bg-white text-black border-2 border-black rounded-xl sm:rounded-2xl font-bold text-base sm:text-lg hover:bg-gray-100 transition-all">
+                Zrušiť
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Private Event Modal */}
       {showPrivateModal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
@@ -2327,23 +2475,234 @@ export default function CalendarPage() {
           </div>
         </div>
       )}
-      
-      {/* Logout Confirmation Modal - Admin Theme */}
-      {showLogoutModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
-          <div className="bg-white text-black rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-black shadow-2xl">
-            <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
-              <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
-              <p className="text-gray-600">
-                Naozaj sa chcete odhlásiť z administrátorského účtu?
-              </p>
+
+      {/* Booking Modal - Admin/Employee creates reservation for customer */}
+      {showBookingModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-2 sm:p-4"
+             onClick={(e) => {
+               if (e.target === e.currentTarget) {
+                 setShowBookingModal(false)
+               }
+             }}>
+          <div className="bg-gradient-to-br from-gray-900 via-amber-900 to-gray-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border-4 border-amber-500/50 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+               onClick={(e) => e.stopPropagation()}>
+            <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
+              <span className="text-3xl sm:text-4xl lg:text-5xl">📅</span>
+              <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Nová rezervácia</h2>
             </div>
             
-            <div className="flex flex-col sm:flex-row gap-3">
+            <form onSubmit={async (e) => {
+              e.preventDefault()
+              
+              if (!bookingData.service_id || !bookingData.employee_id || !bookingData.customer_name.trim()) {
+                showNotification('error', 'Vyplňte všetky povinné polia')
+                return
+              }
+
+              // Validácia emailu alebo telefónu
+              if (!bookingData.customer_email.trim() && !bookingData.customer_phone.trim()) {
+                showNotification('error', 'Zadajte aspoň email alebo telefón')
+                return
+              }
+
+              const service = services.find(s => s.id === bookingData.service_id)
+              if (!service) {
+                showNotification('error', 'Služba nebola nájdená')
+                return
+              }
+
+              try {
+                // Rozdelenie mena na first_name a last_name
+                const nameParts = bookingData.customer_name.trim().split(' ')
+                const firstName = nameParts[0] || ''
+                const lastName = nameParts.slice(1).join(' ') || ''
+                
+                const { data, error } = await supabase
+                  .from('reservations')
+                  .insert([{
+                    first_name: firstName,
+                    last_name: lastName,
+                    email: bookingData.customer_email.trim() || null,
+                    phone: bookingData.customer_phone.trim() || null,
+                    service_id: bookingData.service_id,
+                    employee_id: bookingData.employee_id,
+                    reservation_date: bookingData.reservation_date,
+                    reservation_time: bookingData.start_time + ':00',
+                    status: 'confirmed',
+                    user_id: null
+                  }])
+                  .select()
+
+                if (error) throw error
+
+                showNotification('success', 'Rezervácia bola úspešne vytvorená', '✅ Úspech')
+                setShowBookingModal(false)
+                setBookingData({
+                  service_id: '',
+                  employee_id: '',
+                  reservation_date: '',
+                  start_time: '',
+                  customer_name: '',
+                  customer_email: '',
+                  customer_phone: ''
+                })
+                fetchData()
+              } catch (error: any) {
+                console.error('Error creating reservation:', error)
+                showNotification('error', error.message)
+              }
+            }} className="space-y-3 sm:space-y-4">
+              {/* Údaje zákazníka */}
+              <div className="bg-amber-50/10 p-3 sm:p-4 rounded-lg border-2 border-amber-500/30">
+                <h3 className="font-bold mb-3 text-base sm:text-lg">👤 Údaje zákazníka</h3>
+                
+                <div className="space-y-3">
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Meno a priezvisko *</label>
+                    <input
+                      type="text"
+                      value={bookingData.customer_name}
+                      onChange={(e) => setBookingData({...bookingData, customer_name: e.target.value})}
+                      required
+                      placeholder="Zadajte celé meno"
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                    />
+                  </div>
+                  
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block font-bold mb-2 text-sm sm:text-base">Email</label>
+                      <input
+                        type="email"
+                        value={bookingData.customer_email}
+                        onChange={(e) => setBookingData({...bookingData, customer_email: e.target.value})}
+                        placeholder="email@example.com"
+                        className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block font-bold mb-2 text-sm sm:text-base">Telefón</label>
+                      <input
+                        type="tel"
+                        value={bookingData.customer_phone}
+                        onChange={(e) => setBookingData({...bookingData, customer_phone: e.target.value})}
+                        placeholder="+421 XXX XXX XXX"
+                        className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-xs sm:text-sm text-amber-200/70">* Vyplňte aspoň jeden kontakt (email alebo telefón)</p>
+                </div>
+              </div>
+
+              {/* Detaily rezervácie */}
+              <div className="bg-amber-50/10 p-3 sm:p-4 rounded-lg border-2 border-amber-500/30">
+                <h3 className="font-bold mb-3 text-base sm:text-lg">📅 Detaily rezervácie</h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Služba *</label>
+                    <select
+                      value={bookingData.service_id}
+                      onChange={(e) => setBookingData({...bookingData, service_id: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                    >
+                      <option value="">-- Vyberte službu --</option>
+                      {services.map(service => (
+                        <option key={service.id} value={service.id}>
+                          {service.name} - {service.price}€ ({service.duration_minutes} min)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Zamestnankyňa *</label>
+                    <select
+                      value={bookingData.employee_id}
+                      onChange={(e) => setBookingData({...bookingData, employee_id: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                    >
+                      {employees.map(emp => (
+                        <option key={emp.id} value={emp.id}>
+                          {emp.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Dátum *</label>
+                    <input
+                      type="date"
+                      value={bookingData.reservation_date}
+                      onChange={(e) => setBookingData({...bookingData, reservation_date: e.target.value})}
+                      required
+                      min={new Date().toISOString().split('T')[0]}
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                    />
+                  </div>
+                  
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Čas *</label>
+                    <input
+                      type="time"
+                      value={bookingData.start_time}
+                      onChange={(e) => setBookingData({...bookingData, start_time: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowBookingModal(false)
+                    setBookingData({
+                      service_id: '',
+                      employee_id: '',
+                      reservation_date: '',
+                      start_time: '',
+                      customer_name: '',
+                      customer_email: '',
+                      customer_phone: ''
+                    })
+                  }}
+                  className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-700 text-sm sm:text-base"
+                >
+                  Zrušiť
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 text-sm sm:text-base shadow-lg"
+                >
+                  ✅ Vytvoriť rezerváciu
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal - Amber Theme */}
+      {showLogoutModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
+            <div className="text-center mb-6 sm:mb-8">
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
+              <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
               <button
                 onClick={() => setShowLogoutModal(false)}
-                className="flex-1 px-6 py-3 bg-gray-200 text-black rounded-lg font-bold hover:bg-gray-300 border-2 border-black"
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-gray-700 text-white border-2 border-amber-500/50 rounded-xl sm:rounded-2xl hover:bg-gray-600 transition-all"
               >
                 Zrušiť
               </button>
@@ -2352,9 +2711,9 @@ export default function CalendarPage() {
                   supabase.auth.signOut()
                   router.push('/login')
                 }}
-                className="flex-1 px-6 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800 border-2 border-black"
+                className="flex-1 px-6 sm:px-8 py-3 sm:py-4 text-base sm:text-lg lg:text-xl font-bold bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl hover:from-amber-500 hover:to-amber-700 transition-all shadow-lg"
               >
-                ✅ Áno, odhlásiť
+                Áno, odhlásiť
               </button>
             </div>
           </div>

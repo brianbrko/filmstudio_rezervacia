@@ -85,6 +85,31 @@ export default function DashboardPage() {
     }
   }, [selectedDate, selectedService, selectedEmployee, employees])
 
+  // Real-time aktualizácie rezervácií
+  useEffect(() => {
+    if (!profile || !selectedDate) return
+
+    console.log('🔄 Nastavujem real-time subscription pre dashboard')
+
+    const reservationSubscription = supabase
+      .channel('dashboard-reservations')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'reservations',
+        filter: `reservation_date=eq.${selectedDate}`
+      }, (payload) => {
+        console.log('🔄 Real-time zmena v rezerváciách:', payload)
+        fetchAvailableSlots()
+      })
+      .subscribe()
+
+    return () => {
+      console.log('🔄 Ukončujem real-time subscription pre dashboard')
+      supabase.removeChannel(reservationSubscription)
+    }
+  }, [profile, selectedDate, selectedService, employees])
+
   useEffect(() => {
     // Zatvoriť dropdowny pri kliknutí mimo
     const handleClickOutside = (event: MouseEvent) => {
@@ -116,6 +141,13 @@ export default function DashboardPage() {
       .select('*')
       .eq('id', user.id)
       .single()
+    
+    // Kontrola či je používateľ zablokovaný
+    if (profileData?.is_blocked) {
+      await supabase.auth.signOut()
+      router.push('/login?blocked=true')
+      return
+    }
     
     setProfile(profileData)
     
@@ -278,6 +310,20 @@ export default function DashboardPage() {
   const handleBooking = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!selectedSlot) return
+
+    // Skontroluj či nie je používateľ zablokovaný
+    const { data: currentProfile } = await supabase
+      .from('user_profiles')
+      .select('is_blocked')
+      .eq('id', user.id)
+      .single()
+    
+    if (currentProfile?.is_blocked) {
+      showNotification('error', 'Váš účet bol zablokovaný. Nemôžete vytvoriť rezervácie.', '🚫 Zablokovaný účet')
+      await supabase.auth.signOut()
+      setTimeout(() => router.push('/login?blocked=true'), 2000)
+      return
+    }
 
     const { error } = await supabase
       .from('reservations')

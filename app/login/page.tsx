@@ -1,19 +1,27 @@
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import Image from 'next/image'
 
 export default function LoginPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   })
+
+  // Kontrola či používateľ bol zablokovaný
+  useEffect(() => {
+    if (searchParams.get('blocked') === 'true') {
+      setError('🚫 Váš účet bol zablokovaný administrátorom. Pre viac informácií kontaktujte obsluhu.')
+    }
+  }, [searchParams])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -40,6 +48,19 @@ export default function LoginPage() {
       }
 
       if (data.user) {
+        // Skontrolovať či je používateľ zablokovaný
+        const { data: profileData } = await supabase
+          .from('user_profiles')
+          .select('is_blocked')
+          .eq('id', data.user.id)
+          .single()
+
+        if (profileData?.is_blocked) {
+          await supabase.auth.signOut()
+          setError('🚫 Váš účet bol zablokovaný administrátorom. Pre viac informácií kontaktujte obsluhu.')
+          return
+        }
+
         router.push('/dashboard')
       }
     } catch (err: any) {
