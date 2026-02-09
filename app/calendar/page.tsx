@@ -114,6 +114,11 @@ export default function CalendarPage() {
     customer_phone: ''
   })
   
+  // View mode state - daily or weekly
+  const [viewMode, setViewMode] = useState<'daily' | 'weekly'>('daily')
+  const [weeklyReservations, setWeeklyReservations] = useState<any[]>([])
+  const [weekStartDate, setWeekStartDate] = useState<Date>(getMonday(new Date()))
+  
   // Helper na zobrazenie notifikácie
   const showNotification = (type: 'error' | 'success' | 'warning' | 'info', message: string, title?: string) => {
     setNotification({ show: true, type, message, title })
@@ -164,6 +169,25 @@ export default function CalendarPage() {
     return `${year}-${month}-${day}`
   }
 
+  // Helper funkcia pre získavanie pondelka aktuálneho týždňa
+  function getMonday(date: Date): Date {
+    const d = new Date(date)
+    const day = d.getDay()
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1) // Adjust when day is sunday
+    return new Date(d.setDate(diff))
+  }
+
+  // Helper funkcia pre získanie všetkých dní v týždni
+  function getWeekDays(startDate: Date): Date[] {
+    const days: Date[] = []
+    for (let i = 0; i < 7; i++) {
+      const day = new Date(startDate)
+      day.setDate(startDate.getDate() + i)
+      days.push(day)
+    }
+    return days
+  }
+
   // Farby pre zamestnankyňe
   const [employeeColors, setEmployeeColors] = useState<{ [key: string]: string }>({})
 
@@ -174,6 +198,13 @@ export default function CalendarPage() {
   useEffect(() => {
     if (profile) fetchData()
   }, [profile, selectedDate])
+  
+  // Fetch weekly data when in weekly view mode
+  useEffect(() => {
+    if (profile && viewMode === 'weekly') {
+      fetchWeeklyData()
+    }
+  }, [profile, weekStartDate, viewMode])
   
   // Real-time updates - poslučuj zmeny v rezerváciách
   useEffect(() => {
@@ -306,6 +337,73 @@ export default function CalendarPage() {
       
       console.log('✅ Načítané rezervácie:', enrichedReservations.length)
       setReservations(enrichedReservations)
+    }
+  }
+
+  // Fetch weekly data - načíta rezervácie pre celý týždeň
+  const fetchWeeklyData = async () => {
+    console.log('🔄 Načítavam týždenné dáta...')
+    const weekDays = getWeekDays(weekStartDate)
+    const startDate = formatDateToString(weekDays[0])
+    const endDate = formatDateToString(weekDays[6])
+    
+    const [e, s] = await Promise.all([
+      supabase.from('employees').select('*').eq('is_active', true).order('name'),
+      supabase.from('services').select('*').order('price')
+    ])
+    
+    if (e.data) {
+      setEmployees(e.data)
+      const colors = ['bg-blue-600', 'bg-yellow-600', 'bg-purple-600']
+      const colorMap: { [key: string]: string } = {}
+      e.data.forEach((emp: any, index: number) => {
+        colorMap[emp.id] = colors[index % colors.length]
+      })
+      setEmployeeColors(colorMap)
+    }
+    if (s.data) setServices(s.data)
+    
+    // Načítaj všetky rezervácie pre celý týždeň
+    const { data: weeklyData, error } = await supabase
+      .from('reservations')
+      .select('*')
+      .gte('reservation_date', startDate)
+      .lte('reservation_date', endDate)
+      .neq('status', 'cancelled')
+      .order('reservation_date')
+      .order('reservation_time')
+    
+    if (error) {
+      console.error('❌ Chyba pri načítaní týždenných rezervácií:', error)
+      return
+    }
+    
+    if (weeklyData) {
+      const enrichedReservations = await Promise.all(
+        weeklyData.map(async (reservation: any) => {
+          const [serviceData, userData, userRole, employeeData] = await Promise.all([
+            supabase.from('services').select('*').eq('id', reservation.service_id).maybeSingle(),
+            reservation.user_id 
+              ? supabase.from('user_profiles').select('full_name').eq('id', reservation.user_id).maybeSingle()
+              : Promise.resolve({ data: null, error: null }),
+            reservation.user_id 
+              ? supabase.from('user_profiles').select('role').eq('id', reservation.user_id).maybeSingle()
+              : Promise.resolve({ data: null, error: null }),
+            supabase.from('employees').select('name').eq('id', reservation.employee_id).maybeSingle()
+          ])
+          
+          return {
+            ...reservation,
+            services: serviceData.data,
+            user_profiles: userData.data || { full_name: 'Neznámy používateľ' },
+            user_profile: userRole.data || { role: 'customer' },
+            employees: employeeData.data || { name: 'Neznámy zamestnanec' }
+          }
+        })
+      )
+      
+      console.log('✅ Načítané týždenné rezervácie:', enrichedReservations.length)
+      setWeeklyReservations(enrichedReservations)
     }
   }
 
@@ -1513,7 +1611,76 @@ export default function CalendarPage() {
 
         {/* Calendar - celá šírka na mobile */}
         <div className="bg-white text-black rounded-none sm:rounded-xl lg:rounded-2xl p-2 sm:p-4 lg:p-6 border-t-2 sm:border-2 lg:border-4 border-gray-900">
-          <h2 className="text-base sm:text-xl lg:text-2xl font-bold mb-2 sm:mb-4 lg:mb-6 px-2 sm:px-0">Časový rozvrh</h2>
+          {/* View Mode Switch - Prepínač medzi denným a týždenným prehľadom */}
+          <div className="mb-4 sm:mb-6 px-2 sm:px-0">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+              <h2 className="text-base sm:text-xl lg:text-2xl font-bold">
+                {viewMode === 'daily' ? '📅 Denný prehľad' : '📆 Týždenný prehľad'}
+              </h2>
+              
+              <div className="flex gap-2 bg-gray-200 p-1 rounded-lg border-2 border-gray-900">
+                <button
+                  onClick={() => setViewMode('daily')}
+                  className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all ${
+                    viewMode === 'daily'
+                      ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg'
+                      : 'bg-transparent text-black hover:bg-gray-300'
+                  }`}
+                >
+                  📅 Denný
+                </button>
+                <button
+                  onClick={() => {
+                    setViewMode('weekly')
+                    setWeekStartDate(getMonday(selectedDate))
+                  }}
+                  className={`flex-1 sm:flex-none px-4 py-2 rounded-lg font-bold text-xs sm:text-sm transition-all ${
+                    viewMode === 'weekly'
+                      ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg'
+                      : 'bg-transparent text-black hover:bg-gray-300'
+                  }`}
+                >
+                  📆 Týždenný
+                </button>
+              </div>
+            </div>
+            
+            {/* Weekly navigation */}
+            {viewMode === 'weekly' && (
+              <div className="mt-3 sm:mt-4 flex items-center justify-between gap-2 bg-gray-100 p-2 sm:p-3 rounded-lg border-2 border-gray-900">
+                <button
+                  onClick={() => {
+                    const newDate = new Date(weekStartDate)
+                    newDate.setDate(newDate.getDate() - 7)
+                    setWeekStartDate(newDate)
+                  }}
+                  className="px-3 sm:px-4 py-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-xs sm:text-sm"
+                >
+                  ← Predchádzajúci
+                </button>
+                <div className="text-center flex-1">
+                  <p className="font-bold text-xs sm:text-base">
+                    {weekStartDate.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long' })} - {' '}
+                    {new Date(weekStartDate.getTime() + 6 * 24 * 60 * 60 * 1000).toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' })}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    const newDate = new Date(weekStartDate)
+                    newDate.setDate(newDate.getDate() + 7)
+                    setWeekStartDate(newDate)
+                  }}
+                  className="px-3 sm:px-4 py-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-xs sm:text-sm"
+                >
+                  Nasledujúci →
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {/* Daily View */}
+          {viewMode === 'daily' && (
+          <>
           <div className="flex gap-1 sm:gap-3 lg:gap-4 overflow-x-auto overflow-y-hidden">
             {/* Time labels */}
             <div className="w-6 sm:w-12 lg:w-16 flex-shrink-0">
@@ -1874,6 +2041,113 @@ export default function CalendarPage() {
               ))}
             </div>
           </div>
+          </>
+          )}
+          
+          {/* Weekly View */}
+          {viewMode === 'weekly' && (
+            <div className="overflow-x-auto">
+              <div className="min-w-[700px]">
+                {/* Weekly Header */}
+                <div className="grid grid-cols-8 gap-2 mb-4">
+                  <div className="text-xs sm:text-sm font-bold text-gray-600"></div>
+                  {getWeekDays(weekStartDate).map((day, index) => {
+                    const isToday = formatDateToString(day) === formatDateToString(new Date())
+                    const dayName = ['Po', 'Ut', 'St', 'Št', 'Pi', 'So', 'Ne'][index]
+                    return (
+                      <div
+                        key={index}
+                        className={`text-center p-2 rounded-lg ${
+                          isToday ? 'bg-blue-500 text-white' : 'bg-gray-100 text-black'
+                        }`}
+                      >
+                        <div className="font-bold text-xs sm:text-sm">{dayName}</div>
+                        <div className="text-xs sm:text-base">{day.getDate()}.{day.getMonth() + 1}.</div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                {/* Weekly Grid */}
+                {employees.map(emp => {
+                  const empColor = employeeColors[emp.id] || 'bg-gray-600'
+                  return (
+                    <div key={emp.id} className="mb-4 border-2 border-gray-900 rounded-lg p-2 bg-gray-50">
+                      <div className="grid grid-cols-8 gap-2">
+                        {/* Employee name */}
+                        <div className={`${empColor} text-white font-bold px-2 py-3 rounded-lg flex items-center justify-center text-xs sm:text-sm`}>
+                          {emp.name}
+                        </div>
+                        
+                        {/* Days */}
+                        {getWeekDays(weekStartDate).map((day, dayIndex) => {
+                          const dateStr = formatDateToString(day)
+                          const dayReservations = weeklyReservations.filter(
+                            r => r.employee_id === emp.id && r.reservation_date === dateStr
+                          )
+                          
+                          return (
+                            <div key={dayIndex} className="bg-white border border-gray-300 rounded-lg p-1 min-h-[80px]">
+                              {dayReservations.length === 0 ? (
+                                <div className="text-xs text-gray-400 text-center py-2">
+                                  Žiadne rezervácie
+                                </div>
+                              ) : (
+                                <div className="space-y-1">
+                                  {dayReservations.map((r, idx) => {
+                                    const canSeePersonalInfo = profile?.role === 'admin' || profile?.role === 'employee' || r.user_id === user?.id
+                                    const blockColor = r.is_private ? 'bg-black' : empColor
+                                    let endTime
+                                    if (r.is_private && r.end_time) {
+                                      endTime = r.end_time.slice(0, 5)
+                                    } else {
+                                      endTime = getEndTime(r.reservation_time.slice(0, 5), r.services?.duration_minutes || 30)
+                                    }
+                                    
+                                    return (
+                                      <div
+                                        key={idx}
+                                        className={`${blockColor} text-white rounded p-1 text-[9px] sm:text-[10px] leading-tight`}
+                                        title={r.is_private ? 'Súkromný termín' : canSeePersonalInfo ? `${r.first_name} ${r.last_name} - ${r.services?.name}` : 'Obsadené'}
+                                      >
+                                        {r.is_private ? (
+                                          <>
+                                            <div className="font-bold truncate">🔒 Súkromný</div>
+                                            <div className="opacity-90 truncate">
+                                              {r.reservation_time.slice(0, 5)} - {endTime}
+                                            </div>
+                                          </>
+                                        ) : canSeePersonalInfo ? (
+                                          <>
+                                            <div className="font-bold truncate">{r.first_name} {r.last_name}</div>
+                                            <div className="opacity-90 truncate">{r.services?.name}</div>
+                                            <div className="opacity-80 truncate">
+                                              {r.reservation_time.slice(0, 5)} - {endTime}
+                                            </div>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <div className="font-bold truncate">🔒 Obsadené</div>
+                                            <div className="opacity-90 truncate">
+                                              {r.reservation_time.slice(0, 5)} - {endTime}
+                                            </div>
+                                          </>
+                                        )}
+                                      </div>
+                                    )
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
         </div>
         </div>
         {/* Uzatvorenie grid wrapper */}
