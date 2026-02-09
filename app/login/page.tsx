@@ -53,7 +53,7 @@ export default function LoginPage() {
           .from('user_profiles')
           .select('is_blocked')
           .eq('id', data.user.id)
-          .single()
+          .single<{ is_blocked: boolean }>()
 
         if (profileData?.is_blocked) {
           await supabase.auth.signOut()
