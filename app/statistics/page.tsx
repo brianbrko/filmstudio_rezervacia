@@ -28,6 +28,7 @@ export default function StatisticsPage() {
   }>({ show: false, type: 'info', message: '' })
   
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const showNotification = (
     type: 'error' | 'success' | 'warning' | 'info',
@@ -159,23 +160,85 @@ export default function StatisticsPage() {
       )}
 
       {/* Header */}
-      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 border-b-2 sm:border-b-4 border-amber-500/50">
-        <div className="max-w-[1400px] mx-auto flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-0">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold">📊 Štatistiky</h1>
-            <p className="text-gray-300 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
+      <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white p-4 sm:p-6 border-b-4 border-amber-500/50">
+        <div className="max-w-[1400px] mx-auto">
+          <div className="flex justify-between items-center">
+            <div>
+              <h1 className="text-xl sm:text-3xl font-bold">📊 Štatistiky</h1>
+              <p className="text-gray-300 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
+            </div>
+            
+            {/* Hamburger button - visible on mobile */}
+            <button 
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
+            >
+              {isMobileMenuOpen ? '✕' : '☰'}
+            </button>
+            
+            {/* Desktop menu - hidden on mobile */}
+            <div className="hidden lg:flex gap-4">
+              <button onClick={() => router.push('/calendar')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
+                📅 Kalendár
+              </button>
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
+                <button onClick={() => router.push('/services')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
+                  ⚙️ Služby
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
+                <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
+                  ⏰ Pracovné hodiny
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
+                <button onClick={() => router.push('/users')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
+                  👥 Používatelia
+                </button>
+              )}
+              <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
+                👤 Profil
+              </button>
+              <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
+                Odhlásiť
+              </button>
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
-            <button 
-              onClick={() => router.push('/calendar')} 
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
-              📅 Kalendár
-            </button>
-            <button 
-              onClick={() => setShowLogoutModal(true)} 
-              className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
-              Odhlásiť
-            </button>
+          
+          {/* Mobile menu - collapsible */}
+          <div 
+            className="lg:hidden overflow-hidden transition-all duration-300 ease-in-out"
+            style={{
+              maxHeight: isMobileMenuOpen ? '500px' : '0px',
+              opacity: isMobileMenuOpen ? 1 : 0
+            }}
+          >
+            <div className="mt-4 space-y-2 pb-2">
+              <button onClick={() => {router.push('/calendar'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
+                📅 Kalendár
+              </button>
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
+                <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
+                  ⚙️ Služby
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
+                <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
+                  ⏰ Pracovné hodiny
+                </button>
+              )}
+              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
+                <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
+                  👥 Používatelia
+                </button>
+              )}
+              <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
+                👤 Profil
+              </button>
+              <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
+                Odhlásiť
+              </button>
+            </div>
           </div>
         </div>
       </div>

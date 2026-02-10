@@ -93,6 +93,9 @@ export default function CalendarPage() {
   // Logout modal state
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   
+  // Mobile calendar collapse state
+  const [isCalendarCollapsed, setIsCalendarCollapsed] = useState(true)
+  
   // Event type selection modal (pri kliknutí na prázdne pole)
   const [showEventTypeModal, setShowEventTypeModal] = useState(false)
   const [pendingEventData, setPendingEventData] = useState<{
@@ -1358,8 +1361,14 @@ export default function CalendarPage() {
           </div>
           
           {/* Mobile menu - shown when hamburger is clicked */}
-          {isMobileMenuOpen && (
-            <div className="lg:hidden mt-4 space-y-2 pb-2">
+          <div 
+            className="lg:hidden overflow-hidden transition-all duration-300 ease-in-out"
+            style={{
+              maxHeight: isMobileMenuOpen ? '500px' : '0px',
+              opacity: isMobileMenuOpen ? 1 : 0
+            }}
+          >
+            <div className="mt-4 space-y-2 pb-2">
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
                   ⚙️ Služby
@@ -1387,90 +1396,122 @@ export default function CalendarPage() {
                 Odhlásiť
               </button>
             </div>
-          )}
+          </div>
         </div>
       </div>
 
       <div className="max-w-[1800px] mx-auto p-0 sm:p-4 lg:p-6">
         {/* Mobile date picker - nad časovým rozvrhom */}
-        <div className="lg:hidden mb-2 sm:mb-4 bg-white text-black rounded-none sm:rounded-xl p-3 sm:p-4 border-2 sm:border-4 border-gray-900">
-          <div className="flex items-center justify-between mb-3">
-            <button 
-              onClick={() => {
-                const d = new Date(calendarView)
-                d.setMonth(d.getMonth() - 1)
-                setCalendarView(d)
-              }} 
-              className="p-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm">
-              ←
-            </button>
-            <h2 className="text-lg font-bold">
-              {monthNames[month]} {year}
-            </h2>
-            <button 
-              onClick={() => {
-                const d = new Date(calendarView)
-                d.setMonth(d.getMonth() + 1)
-                setCalendarView(d)
-              }} 
-              className="p-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm">
-              →
-            </button>
-          </div>
-
-          {/* Dni v týždni */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {dayNames.map(day => (
-              <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Dni v mesiaci */}
-          <div className="grid grid-cols-7 gap-1">
-            {Array.from({ length: adjustedStartDay }).map((_, i) => (
-              <div key={`empty-${i}`} className="aspect-square"></div>
-            ))}
-            
-            {Array.from({ length: daysInMonth }).map((_, i) => {
-              const day = i + 1
-              const dateObj = new Date(year, month, day)
-              const isTodayDate = isToday(dateObj, day, month, year)
-              const isSelected = isSelectedDate(day, month, year)
-              
-              return (
-                <button
-                  key={day}
-                  onClick={() => {
-                    setSelectedDate(new Date(year, month, day))
-                  }}
-                  className={`aspect-square rounded-lg font-bold text-xs transition-all hover:scale-105 ${
-                    isSelected 
-                      ? 'bg-black text-white' 
-                      : isTodayDate 
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 hover:bg-gray-200'
-                  }`}>
-                  {day}
-                </button>
-              )
-            })}
-          </div>
-
+        <div className="lg:hidden mb-2 sm:mb-4 bg-white text-black rounded-none sm:rounded-xl border-2 sm:border-4 border-gray-900 overflow-hidden">
+          {/* Collapsible header */}
           <button 
-            onClick={() => {
-              const today = new Date()
-              setSelectedDate(today)
-              setCalendarView(today)
-            }} 
-            className="w-full mt-3 py-2 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm">
-            📅 Dnes
+            onClick={() => setIsCalendarCollapsed(!isCalendarCollapsed)}
+            className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-lg font-bold">📅 Kalendár</span>
+              <span className="text-xs text-gray-600">
+                {selectedDate.toLocaleDateString('sk-SK', {day:'numeric',month:'short'})}
+              </span>
+            </div>
+            <span 
+              className="text-2xl transition-transform duration-300 ease-in-out" 
+              style={{
+                transform: isCalendarCollapsed ? 'rotate(0deg)' : 'rotate(180deg)'
+              }}
+            >
+              ▼
+            </span>
           </button>
 
-          <div className="mt-3 p-2 bg-gray-50 rounded-lg border-2 border-gray-900">
-            <p className="text-xs text-gray-600 mb-1">Vybraný dátum:</p>
-            <p className="font-bold text-sm">{selectedDate.toLocaleDateString('sk-SK', {day:'numeric',month:'long',year:'numeric'})}</p>
+          {/* Collapsible content */}
+          <div 
+            className="transition-all duration-300 ease-in-out overflow-hidden"
+            style={{
+              maxHeight: isCalendarCollapsed ? '0px' : '1000px',
+              opacity: isCalendarCollapsed ? 0 : 1
+            }}
+          >
+            <div className="p-3 sm:p-4 pt-0 border-t-2 border-gray-200">
+              <div className="flex items-center justify-between mb-3 mt-3">
+                <button 
+                  onClick={() => {
+                    const d = new Date(calendarView)
+                    d.setMonth(d.getMonth() - 1)
+                    setCalendarView(d)
+                  }} 
+                  className="p-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm">
+                  ←
+                </button>
+                <h2 className="text-lg font-bold">
+                  {monthNames[month]} {year}
+                </h2>
+                <button 
+                  onClick={() => {
+                    const d = new Date(calendarView)
+                    d.setMonth(d.getMonth() + 1)
+                    setCalendarView(d)
+                  }} 
+                  className="p-2 bg-black text-white rounded-lg font-bold hover:bg-gray-800 text-sm">
+                  →
+                </button>
+              </div>
+
+              {/* Dni v týždni */}
+              <div className="grid grid-cols-7 gap-1 mb-2">
+                {dayNames.map(day => (
+                  <div key={day} className="text-center text-xs font-bold text-gray-600 py-1">
+                    {day}
+                  </div>
+                ))}
+              </div>
+
+              {/* Dni v mesiaci */}
+              <div className="grid grid-cols-7 gap-1">
+                {Array.from({ length: adjustedStartDay }).map((_, i) => (
+                  <div key={`empty-${i}`} className="aspect-square"></div>
+                ))}
+                
+                {Array.from({ length: daysInMonth }).map((_, i) => {
+                  const day = i + 1
+                  const dateObj = new Date(year, month, day)
+                  const isTodayDate = isToday(dateObj, day, month, year)
+                  const isSelected = isSelectedDate(day, month, year)
+                  
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => {
+                        setSelectedDate(new Date(year, month, day))
+                      }}
+                      className={`aspect-square rounded-lg font-bold text-xs transition-all hover:scale-105 ${
+                        isSelected 
+                          ? 'bg-black text-white' 
+                          : isTodayDate 
+                          ? 'bg-blue-500 text-white'
+                          : 'bg-gray-100 hover:bg-gray-200'
+                      }`}>
+                      {day}
+                    </button>
+                  )
+                })}
+              </div>
+
+              <button 
+                onClick={() => {
+                  const today = new Date()
+                  setSelectedDate(today)
+                  setCalendarView(today)
+                }} 
+                className="w-full mt-3 py-2 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm">
+                📅 Dnes
+              </button>
+
+              <div className="mt-3 p-2 bg-gray-50 rounded-lg border-2 border-gray-900">
+                <p className="text-xs text-gray-600 mb-1">Vybraný dátum:</p>
+                <p className="font-bold text-sm">{selectedDate.toLocaleDateString('sk-SK', {day:'numeric',month:'long',year:'numeric'})}</p>
+              </div>
+            </div>
           </div>
         </div>
 

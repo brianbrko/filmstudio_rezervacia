@@ -27,6 +27,7 @@ export default function ProfilePage() {
   }>({ show: false, type: 'info', message: '' })
   
   const [showLogoutModal, setShowLogoutModal] = useState(false)
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   const showNotification = (
     type: 'error' | 'success' | 'warning' | 'info',
