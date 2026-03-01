@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
@@ -24,12 +24,12 @@ export default function TestPage() {
         .select('*')
       
       if (error) {
-        setResult(`❌ CHYBA: ${error.message}\n\nCode: ${error.code}\nDetails: ${error.details}\nHint: ${error.hint}\n\nFull error:\n${JSON.stringify(error, null, 2)}`)
+        setResult(`CHYBA: ${error.message}\n\nCode: ${error.code}\nDetails: ${error.details}\nHint: ${error.hint}\n\nFull error:\n${JSON.stringify(error, null, 2)}`)
       } else {
-        setResult(`✅ PRIPOJENIE FUNGUJE!\n\nNájdené služby: ${services?.length || 0}\n\n${JSON.stringify(services, null, 2)}`)
+        setResult(`PRIPOJENIE FUNGUJE!\n\nNájdené služby: ${services?.length || 0}\n\n${JSON.stringify(services, null, 2)}`)
       }
     } catch (err: any) {
-      setResult(`❌ VÝNIMKA: ${err.message}\n\nType: ${err.constructor.name}\nStack:\n${err.stack}\n\nFull:\n${JSON.stringify(err, null, 2)}`)
+      setResult(`VÝNIMKA: ${err.message}\n\nType: ${err.constructor.name}\nStack:\n${err.stack}\n\nFull:\n${JSON.stringify(err, null, 2)}`)
     }
 
     setLoading(false)
@@ -42,13 +42,13 @@ export default function TestPage() {
           <a href="/" className="text-primary hover:underline">← Späť</a>
         </div>
 
-        <h1 className="text-3xl font-bold mb-8">🔧 Test Supabase pripojenia</h1>
+        <h1 className="text-3xl font-bold mb-8">Test Supabase pripojenia</h1>
 
         <div className="bg-white p-6 rounded-lg shadow-lg mb-6">
           <h2 className="text-xl font-semibold mb-4">Konfigurácia:</h2>
           <div className="space-y-2 font-mono text-sm">
-            <p><strong>URL:</strong> {process.env.NEXT_PUBLIC_SUPABASE_URL || '❌ CHÝBA'}</p>
-            <p><strong>ANON KEY:</strong> {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? '✅ Nastavený' : '❌ CHÝBA'}</p>
+            <p><strong>URL:</strong> {process.env.NEXT_PUBLIC_SUPABASE_URL || 'CHÝBA'}</p>
+            <p><strong>ANON KEY:</strong> {process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Nastavený' : 'CHÝBA'}</p>
           </div>
         </div>
 

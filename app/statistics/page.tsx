@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -139,10 +139,10 @@ export default function StatisticsPage() {
         } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
           <div className="flex items-start gap-2 sm:gap-3">
             <span className="text-xl sm:text-2xl">
-              {notification.type === 'error' ? '❌' :
-               notification.type === 'success' ? '✅' :
-               notification.type === 'warning' ? '⚠️' :
-               'ℹ️'}
+              {notification.type === 'error' ? '' :
+               notification.type === 'success' ? '' :
+               notification.type === 'warning' ? '️' :
+               ''}
             </span>
             <div className="flex-1">
               {notification.title && (
@@ -164,7 +164,7 @@ export default function StatisticsPage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">📊 Štatistiky</h1>
+              <h1 className="text-xl sm:text-3xl font-bold">Štatistiky</h1>
               <p className="text-gray-300 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
             </div>
             
@@ -173,31 +173,31 @@ export default function StatisticsPage() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
             >
-              {isMobileMenuOpen ? '✕' : '☰'}
+              {isMobileMenuOpen ? '' : ''}
             </button>
             
             {/* Desktop menu - hidden on mobile */}
             <div className="hidden lg:flex gap-4">
               <button onClick={() => router.push('/calendar')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => router.push('/services')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⚙️ Služby
+                  ️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => router.push('/users')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 Odhlásiť
@@ -215,25 +215,25 @@ export default function StatisticsPage() {
           >
             <div className="mt-4 space-y-2 pb-2">
               <button onClick={() => {router.push('/calendar'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⚙️ Služby
+                  ️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
                 Odhlásiť
@@ -246,7 +246,7 @@ export default function StatisticsPage() {
       <div className="max-w-[1400px] mx-auto p-4 sm:p-6">
         {/* Filter mesiacov */}
         <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-amber-500/30 mb-4 sm:mb-6">
-          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">📅 Filter podľa mesiaca</h2>
+          <h2 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4">Filter podľa mesiaca</h2>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
             <label className="font-bold text-base sm:text-lg">Vybrať mesiac:</label>
             <select
@@ -254,7 +254,7 @@ export default function StatisticsPage() {
               onChange={(e) => setSelectedMonth(e.target.value)}
               className="w-full sm:w-auto px-4 sm:px-6 py-2 sm:py-3 border-2 border-amber-500/30 rounded-lg font-medium text-sm sm:text-lg bg-gray-700 text-white hover:bg-gray-600 cursor-pointer"
             >
-              <option value="all">🌍 Všetky mesiace</option>
+              <option value="all">Všetky mesiace</option>
               {Array.from({ length: 12 }, (_, i) => {
                 const date = new Date()
                 date.setMonth(date.getMonth() - i)
@@ -326,7 +326,7 @@ export default function StatisticsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6 sm:mb-8">
-              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">️</div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
               <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
             </div>

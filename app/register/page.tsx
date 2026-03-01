@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -85,7 +85,7 @@ export default function RegisterPage() {
         showNotification(
           'success', 
           'Skontrolujte svoju emailovú schránku a overte registráciu kliknutím na link v emaile. Po overení sa môžete prihlásiť.', 
-          '📧 Overte váš email'
+          'Overte váš email'
         )
         setTimeout(() => router.push('/login'), 8000)
       }
@@ -150,12 +150,6 @@ export default function RegisterPage() {
             ${notification.type === 'info' ? 'bg-blue-500 border-blue-700' : ''}
           `}>
             <div className="flex items-start gap-3">
-              <div className="text-2xl sm:text-3xl">
-                {notification.type === 'error' && '❌'}
-                {notification.type === 'success' && '✅'}
-                {notification.type === 'warning' && '⚠️'}
-                {notification.type === 'info' && 'ℹ️'}
-              </div>
               <div className="flex-1">
                 {notification.title && (
                   <div className="font-bold text-lg text-white mb-1">

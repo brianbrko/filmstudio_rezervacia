@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -19,7 +19,7 @@ function LoginForm() {
   // Kontrola či používateľ bol zablokovaný
   useEffect(() => {
     if (searchParams.get('blocked') === 'true') {
-      setError('🚫 Váš účet bol zablokovaný administrátorom. Pre viac informácií kontaktujte obsluhu.')
+      setError('Váš účet bol zablokovaný administrátorom. Pre viac informácií kontaktujte obsluhu.')
     }
   }, [searchParams])
 
@@ -57,7 +57,7 @@ function LoginForm() {
 
         if (profileData?.is_blocked) {
           await supabase.auth.signOut()
-          setError('🚫 Váš účet bol zablokovaný administrátorom. Pre viac informácií kontaktujte obsluhu.')
+          setError('Váš účet bol zablokovaný administrátorom. Pre viac informácií kontaktujte obsluhu.')
           return
         }
 

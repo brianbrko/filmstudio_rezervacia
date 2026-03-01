@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -25,6 +25,9 @@ export default function ReservationsPage() {
   const [upcomingReservations, setUpcomingReservations] = useState<Reservation[]>([])
   const [pastReservations, setPastReservations] = useState<Reservation[]>([])
   const [activeTab, setActiveTab] = useState<'upcoming' | 'past'>('upcoming')
+  const [cancellingId, setCancellingId] = useState<string | null>(null)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [reservationToCancel, setReservationToCancel] = useState<Reservation | null>(null)
 
   // Notification system
   const [notification, setNotification] = useState<{
@@ -169,16 +172,46 @@ export default function ReservationsPage() {
     return `${dayName}, ${date.getDate()}.${date.getMonth() + 1}.${date.getFullYear()}`
   }
 
+  const handleCancelClick = (reservation: Reservation) => {
+    setReservationToCancel(reservation)
+    setShowCancelModal(true)
+  }
+
+  const handleCancelReservation = async () => {
+    if (!reservationToCancel) return
+
+    setCancellingId(reservationToCancel.id)
+    setShowCancelModal(false)
+
+    const { error } = await supabase
+      .from('reservations')
+      .update({ status: 'cancelled' })
+      .eq('id', reservationToCancel.id)
+      .eq('user_id', user.id)
+
+    if (error) {
+      console.error('Error cancelling reservation:', error)
+      showNotification('error', 'Chyba pri zrušení rezervácie: ' + error.message, 'Chyba')
+    } else {
+      showNotification('success', 'Rezervácia bola úspešne zrušená', 'Úspech')
+      // Znova načítame rezervácie
+      await fetchReservations(user.id)
+    }
+
+    setCancellingId(null)
+    setReservationToCancel(null)
+  }
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'confirmed':
-        return <span className="px-2 sm:px-3 py-1 bg-green-500 text-white rounded-full text-xs sm:text-sm font-bold">✓ Potvrdené</span>
+        return <span className="px-2 sm:px-3 py-1 bg-green-500 text-white rounded-full text-xs sm:text-sm font-bold">Potvrdené</span>
       case 'pending':
         return <span className="px-2 sm:px-3 py-1 bg-yellow-500 text-white rounded-full text-xs sm:text-sm font-bold">⏳ Čaká</span>
       case 'cancelled':
-        return <span className="px-2 sm:px-3 py-1 bg-red-500 text-white rounded-full text-xs sm:text-sm font-bold">✗ Zrušené</span>
+        return <span className="px-2 sm:px-3 py-1 bg-red-500 text-white rounded-full text-xs sm:text-sm font-bold">Zrušené</span>
       case 'completed':
-        return <span className="px-2 sm:px-3 py-1 bg-blue-500 text-white rounded-full text-xs sm:text-sm font-bold">✓ Dokončené</span>
+        return <span className="px-2 sm:px-3 py-1 bg-blue-500 text-white rounded-full text-xs sm:text-sm font-bold">Dokončené</span>
       default:
         return <span className="px-2 sm:px-3 py-1 bg-gray-500 text-white rounded-full text-xs sm:text-sm font-bold">{status}</span>
     }
@@ -226,10 +259,10 @@ export default function ReservationsPage() {
         } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
           <div className="flex items-start gap-2 sm:gap-3">
             <span className="text-xl sm:text-2xl">
-              {notification.type === 'error' ? '❌' :
-               notification.type === 'success' ? '✅' :
-               notification.type === 'warning' ? '⚠️' :
-               'ℹ️'}
+              {notification.type === 'error' ? '' :
+               notification.type === 'success' ? '' :
+               notification.type === 'warning' ? '️' :
+               ''}
             </span>
             <div className="flex-1">
               {notification.title && (
@@ -259,12 +292,12 @@ export default function ReservationsPage() {
             <button 
               onClick={() => router.push('/dashboard')} 
               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20 text-sm sm:text-base">
-              📅 Nová rezervácia
+              Nová rezervácia
             </button>
             <button 
               onClick={() => router.push('/profile')} 
               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
-              👤 Profil
+              Profil
             </button>
             <button 
               onClick={() => setShowLogoutModal(true)} 
@@ -285,7 +318,7 @@ export default function ReservationsPage() {
                 ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white border-amber-500 shadow-lg'
                 : 'bg-gray-800 text-white border-amber-500/30 hover:bg-gray-700'
             }`}>
-            📅 Nadchádzajúce ({upcomingReservations.length})
+            Nadchádzajúce ({upcomingReservations.length})
           </button>
           <button
             onClick={() => setActiveTab('past')}
@@ -294,7 +327,7 @@ export default function ReservationsPage() {
                 ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white border-amber-500 shadow-lg'
                 : 'bg-gray-800 text-white border-amber-500/30 hover:bg-gray-700'
             }`}>
-            🕐 História ({pastReservations.length})
+            História ({pastReservations.length})
           </button>
         </div>
 
@@ -304,12 +337,12 @@ export default function ReservationsPage() {
             <>
               {upcomingReservations.length === 0 ? (
                 <div className="bg-gray-800 rounded-2xl p-6 sm:p-12 text-center border-2 sm:border-4 border-gray-700">
-                  <p className="text-xl sm:text-2xl font-bold mb-2">📭 Žiadne nadchádzajúce rezervácie</p>
+                  <p className="text-xl sm:text-2xl font-bold mb-2">Žiadne nadchádzajúce rezervácie</p>
                   <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">Vytvorte si novú rezerváciu v kalendári</p>
                   <button
                     onClick={() => router.push('/dashboard')}
                     className="px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
-                    📅 Vytvoriť rezerváciu
+                    Vytvoriť rezerváciu
                   </button>
                 </div>
               ) : (
@@ -317,24 +350,37 @@ export default function ReservationsPage() {
                   <div
                     key={reservation.id}
                     className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 border-amber-500/30 shadow-lg hover:shadow-xl transition-shadow hover:border-amber-500/50">
-                    <div className="flex-1">
-                      <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
-                        <h3 className="text-lg sm:text-2xl font-bold">{reservation.service_name}</h3>
-                        {getStatusBadge(reservation.status)}
+                    <div className="flex flex-col sm:flex-row gap-4 justify-between">
+                      <div className="flex-1">
+                        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 mb-2">
+                          <h3 className="text-lg sm:text-2xl font-bold">{reservation.service_name}</h3>
+                          {getStatusBadge(reservation.status)}
+                        </div>
+                        <p className="text-gray-300 text-sm sm:text-lg mb-1">
+                          {reservation.employee_name}
+                        </p>
+                        <p className="text-gray-300 text-sm sm:text-lg mb-1">
+                          {formatDate(reservation.date)}
+                        </p>
+                        <p className="text-gray-300 text-sm sm:text-lg">
+                          {reservation.start_time} - {reservation.end_time}
+                        </p>
+                        {reservation.notes && (
+                          <div className="mt-3 p-2 sm:p-3 bg-amber-500/10 rounded-lg border-2 border-amber-500/30">
+                            <p className="text-xs sm:text-sm font-bold text-amber-400 mb-1">Poznámka:</p>
+                            <p className="text-sm sm:text-base text-gray-300">{reservation.notes}</p>
+                          </div>
+                        )}
                       </div>
-                      <p className="text-gray-300 text-sm sm:text-lg mb-1">
-                        👤 {reservation.employee_name}
-                      </p>
-                      <p className="text-gray-300 text-sm sm:text-lg mb-1">
-                        📅 {formatDate(reservation.date)}
-                      </p>
-                      <p className="text-gray-300 text-sm sm:text-lg">
-                        🕐 {reservation.start_time} - {reservation.end_time}
-                      </p>
-                      {reservation.notes && (
-                        <div className="mt-3 p-2 sm:p-3 bg-amber-500/10 rounded-lg border-2 border-amber-500/30">
-                          <p className="text-xs sm:text-sm font-bold text-amber-400 mb-1">💬 Poznámka:</p>
-                          <p className="text-sm sm:text-base text-gray-300">{reservation.notes}</p>
+                      {(reservation.status === 'pending' || reservation.status === 'confirmed') && (
+                        <div className="flex sm:items-start">
+                          <button
+                            onClick={() => handleCancelClick(reservation)}
+                            disabled={cancellingId === reservation.id}
+                            className="px-4 sm:px-6 py-2 sm:py-3 bg-red-500 text-white rounded-lg font-bold hover:bg-red-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-sm sm:text-base whitespace-nowrap"
+                          >
+                            {cancellingId === reservation.id ? 'Zrušujem...' : 'Zrušiť rezerváciu'}
+                          </button>
                         </div>
                       )}
                     </div>
@@ -348,7 +394,7 @@ export default function ReservationsPage() {
             <>
               {pastReservations.length === 0 ? (
                 <div className="bg-gray-800 rounded-2xl p-6 sm:p-12 text-center border-2 sm:border-4 border-gray-700">
-                  <p className="text-xl sm:text-2xl font-bold mb-2">📭 Žiadna história</p>
+                  <p className="text-xl sm:text-2xl font-bold mb-2">Žiadna história</p>
                   <p className="text-sm sm:text-base text-gray-400">Tu sa zobrazia vaše minulé rezervácie</p>
                 </div>
               ) : (
@@ -363,17 +409,17 @@ export default function ReservationsPage() {
                           {getStatusBadge(reservation.status)}
                         </div>
                         <p className="text-gray-400 text-sm sm:text-lg mb-1">
-                          👤 {reservation.employee_name}
+                          {reservation.employee_name}
                         </p>
                         <p className="text-gray-400 text-sm sm:text-lg mb-1">
-                          📅 {formatDate(reservation.date)}
+                          {formatDate(reservation.date)}
                         </p>
                         <p className="text-gray-400 text-sm sm:text-lg">
-                          🕐 {reservation.start_time} - {reservation.end_time}
+                          {reservation.start_time} - {reservation.end_time}
                         </p>
                         {reservation.notes && (
                           <div className="mt-3 p-2 sm:p-3 bg-gray-900 rounded-lg border-2 border-gray-600">
-                            <p className="text-xs sm:text-sm font-bold text-gray-300 mb-1">💬 Poznámka:</p>
+                            <p className="text-xs sm:text-sm font-bold text-gray-300 mb-1">Poznámka:</p>
                             <p className="text-sm sm:text-base text-gray-400">{reservation.notes}</p>
                           </div>
                         )}
@@ -387,12 +433,56 @@ export default function ReservationsPage() {
         </div>
       </div>
       
+      {/* Cancel Confirmation Modal */}
+      {showCancelModal && reservationToCancel && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
+          <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-red-500/50 shadow-2xl shadow-red-500/20">
+            <div className="text-center mb-6">
+              <div className="text-6xl mb-4">⚠️</div>
+              <h2 className="text-2xl font-bold mb-2">Zrušiť rezerváciu?</h2>
+              <p className="text-gray-300 mb-4">
+                Naozaj chcete zrušiť túto rezerváciu?
+              </p>
+              <div className="bg-red-500/10 border-2 border-red-500/30 rounded-lg p-4 text-left">
+                <p className="font-bold text-lg mb-1">{reservationToCancel.service_name}</p>
+                <p className="text-sm text-gray-300">{reservationToCancel.employee_name}</p>
+                <p className="text-sm text-gray-300">{formatDate(reservationToCancel.date)}</p>
+                <p className="text-sm text-gray-300">{reservationToCancel.start_time} - {reservationToCancel.end_time}</p>
+              </div>
+            </div>
+            
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={() => {
+                  setShowCancelModal(false)
+                  setReservationToCancel(null)
+                }}
+                className="flex-1 px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-gray-600"
+              >
+                Nie, vrátiť sa
+              </button>
+              <button
+                onClick={handleCancelReservation}
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-bold hover:from-red-600 hover:to-red-700 shadow-lg shadow-red-500/30"
+              >
+                Áno, zrušiť
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/*   </>
+          )}
+        </div>
+      </div>
+      
       {/* Logout Confirmation Modal */}
       {showLogoutModal && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-amber-500/50 shadow-2xl shadow-amber-500/20">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="text-6xl mb-4">️</div>
               <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
               <p className="text-gray-300">
                 Naozaj sa chcete odhlásiť zo svojho účtu?
@@ -413,7 +503,7 @@ export default function ReservationsPage() {
                 }}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30"
               >
-                ✅ Áno, odhlásiť
+                Áno, odhlásiť
               </button>
             </div>
           </div>

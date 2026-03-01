@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
@@ -283,10 +283,10 @@ export default function UsersPage() {
         } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
           <div className="flex items-start gap-2 sm:gap-3">
             <span className="text-xl sm:text-2xl">
-              {notification.type === 'error' ? '❌' :
-               notification.type === 'success' ? '✅' :
-               notification.type === 'warning' ? '⚠️' :
-               'ℹ️'}
+              {notification.type === 'error' ? '' :
+               notification.type === 'success' ? '' :
+               notification.type === 'warning' ? '️' :
+               ''}
             </span>
             <div className="flex-1">
               {notification.title && (
@@ -330,7 +330,7 @@ export default function UsersPage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">👥 Správa používateľov</h1>
+              <h1 className="text-xl sm:text-3xl font-bold">Správa používateľov</h1>
               <p className="text-gray-300 text-sm sm:text-base">Admin panel - Celkom {users.length} používateľov</p>
             </div>
             
@@ -339,31 +339,31 @@ export default function UsersPage() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
             >
-              {isMobileMenuOpen ? '✕' : '☰'}
+              {isMobileMenuOpen ? '' : ''}
             </button>
             
             {/* Desktop menu - hidden on mobile */}
             <div className="hidden lg:flex gap-4">
               <button onClick={() => router.push('/calendar')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => router.push('/services')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⚙️ Služby
+                  ️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 Odhlásiť
@@ -381,25 +381,25 @@ export default function UsersPage() {
           >
             <div className="mt-4 space-y-2 pb-2">
               <button onClick={() => {router.push('/calendar'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⚙️ Služby
+                  ️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
                 Odhlásiť
@@ -413,7 +413,7 @@ export default function UsersPage() {
         {/* Read-only upozornenie pre zamestnancov */}
         {profile?.role === 'employee' && (
           <div className="bg-blue-100 border-l-4 border-blue-600 text-blue-800 p-3 sm:p-4 mb-4 sm:mb-6 rounded">
-            <p className="font-bold text-sm sm:text-base">👁️ Režim len na čítanie</p>
+            <p className="font-bold text-sm sm:text-base">️ Režim len na čítanie</p>
             <p className="text-xs sm:text-sm">Môžete prezervať zoznam používateľov, ale nemôžete ich meniť.</p>
           </div>
         )}
@@ -428,7 +428,7 @@ export default function UsersPage() {
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
-            👥 Všetci ({users.length})
+            Všetci ({users.length})
           </button>
           <button
             onClick={() => handleFilterChange('active')}
@@ -438,7 +438,7 @@ export default function UsersPage() {
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
-            ✅ Aktívni ({users.filter(u => !u.is_blocked).length})
+            Aktívni ({users.filter(u => !u.is_blocked).length})
           </button>
           <button
             onClick={() => handleFilterChange('blocked')}
@@ -448,7 +448,7 @@ export default function UsersPage() {
                 : 'bg-gray-700 text-white hover:bg-gray-600'
             }`}
           >
-            🚫 Zablokovaní ({users.filter(u => u.is_blocked).length})
+            Zablokovaní ({users.filter(u => u.is_blocked).length})
           </button>
         </div>
 
@@ -485,17 +485,17 @@ export default function UsersPage() {
                       ? 'bg-blue-500 text-white'
                       : 'bg-gray-200 text-gray-800'
                   }`}>
-                    {user.role === 'admin' ? '👑 Admin' : user.role === 'employee' ? '💼 Zamestnanec' : '👤 Zákazník'}
+                    {user.role === 'admin' ? 'Admin' : user.role === 'employee' ? 'Zamestnanec' : 'Zákazník'}
                   </span>
                   <span className={`text-xs px-2 sm:px-3 py-1 rounded-full font-bold whitespace-nowrap ${
                     user.is_blocked 
                       ? 'bg-red-500 text-white' 
                       : 'bg-green-500 text-white'
                   }`}>
-                    {user.is_blocked ? '🚫 Zablokovaný' : '✅ Aktívny'}
+                    {user.is_blocked ? 'Zablokovaný' : 'Aktívny'}
                   </span>
                   <p className="text-xs sm:text-sm text-gray-300 whitespace-nowrap">
-                    📅 {new Date(user.created_at).toLocaleDateString('sk-SK')}
+                    {new Date(user.created_at).toLocaleDateString('sk-SK')}
                   </p>
                 </div>
               </div>
@@ -508,9 +508,9 @@ export default function UsersPage() {
                     onChange={(e) => changeRole(user.id, e.target.value as 'customer' | 'employee' | 'admin')}
                     className="flex-1 sm:flex-none px-3 sm:px-4 py-2 border-2 border-amber-500/30 rounded-lg font-bold bg-gray-700 text-white hover:bg-gray-600 cursor-pointer text-xs sm:text-sm"
                   >
-                    <option value="customer">👤 Zákazník</option>
-                    <option value="employee">💼 Zamestnanec</option>
-                    <option value="admin">👑 Admin</option>
+                    <option value="customer">Zákazník</option>
+                    <option value="employee">Zamestnanec</option>
+                    <option value="admin">Admin</option>
                   </select>
                   <button
                     onClick={() => toggleBlock(user.id, user.is_blocked)}
@@ -520,13 +520,13 @@ export default function UsersPage() {
                         : 'bg-orange-600 text-white hover:bg-orange-700'
                     }`}
                   >
-                    {user.is_blocked ? '✅ Odblokovať' : '🚫 Zablokovať'}
+                    {user.is_blocked ? 'Odblokovať' : 'Zablokovať'}
                   </button>
                   <button
                     onClick={() => deleteUser(user.id, user.full_name)}
                     className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors whitespace-nowrap text-xs sm:text-sm"
                   >
-                    🗑️ Vymazať
+                    ️ Vymazať
                   </button>
                 </div>
               )}
@@ -534,7 +534,7 @@ export default function UsersPage() {
               {/* Employee Permissions */}
               {user.role === 'employee' && user.id !== currentUserId && (
                 <div className="mt-3 sm:mt-4 pt-3 sm:pt-4 border-t-2 border-amber-500/30 w-full">
-                  <h4 className="font-bold text-xs sm:text-sm mb-2 sm:mb-3 text-gray-300">🔐 Oprávnenia zamestnanca:</h4>
+                  <h4 className="font-bold text-xs sm:text-sm mb-2 sm:mb-3 text-gray-300">Oprávnenia zamestnanca:</h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -543,7 +543,7 @@ export default function UsersPage() {
                         onChange={(e) => updatePermissions(user.id, 'services', e.target.checked)}
                         className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer"
                       />
-                      <span className="text-xs sm:text-sm font-medium">🛠️ Služby</span>
+                      <span className="text-xs sm:text-sm font-medium">️ Služby</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -552,7 +552,7 @@ export default function UsersPage() {
                         onChange={(e) => updatePermissions(user.id, 'working_hours', e.target.checked)}
                         className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer"
                       />
-                      <span className="text-xs sm:text-sm font-medium">🕐 Pracovné hodiny</span>
+                      <span className="text-xs sm:text-sm font-medium">Pracovné hodiny</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -561,7 +561,7 @@ export default function UsersPage() {
                         onChange={(e) => updatePermissions(user.id, 'statistics', e.target.checked)}
                         className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer"
                       />
-                      <span className="text-xs sm:text-sm font-medium">📊 Štatistiky</span>
+                      <span className="text-xs sm:text-sm font-medium">Štatistiky</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
@@ -570,7 +570,7 @@ export default function UsersPage() {
                         onChange={(e) => updatePermissions(user.id, 'users', e.target.checked)}
                         className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer"
                       />
-                      <span className="text-xs sm:text-sm font-medium">👥 Používatelia</span>
+                      <span className="text-xs sm:text-sm font-medium">Používatelia</span>
                     </label>
                     <div className="flex items-center gap-2 opacity-50">
                       <input
@@ -579,7 +579,7 @@ export default function UsersPage() {
                         disabled
                         className="w-4 h-4 sm:w-5 sm:h-5"
                       />
-                      <span className="text-xs sm:text-sm font-medium">🔒 Súkromné termíny (vždy)</span>
+                      <span className="text-xs sm:text-sm font-medium">Súkromné termíny (vždy)</span>
                     </div>
                   </div>
                 </div>
@@ -604,7 +604,7 @@ export default function UsersPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6 sm:mb-8">
-              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">️</div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
               <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
             </div>

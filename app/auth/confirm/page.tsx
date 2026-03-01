@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -93,7 +93,6 @@ export default function ConfirmEmailPage() {
           
           {status === 'loading' && (
             <>
-              <div className="text-6xl mb-4 animate-pulse">⏳</div>
               <h1 className="text-3xl font-bold mb-4 text-white">Overujem email...</h1>
               <p className="text-gray-300">Prosím čakajte</p>
             </>
@@ -101,7 +100,6 @@ export default function ConfirmEmailPage() {
 
           {status === 'success' && (
             <>
-              <div className="text-6xl mb-4 animate-bounce">✅</div>
               <h1 className="text-3xl font-bold mb-4 text-white">Email overený!</h1>
               <p className="text-gray-300 mb-6">Váš email bol úspešne overený.</p>
               <p className="text-sm text-gray-400 mb-4">Presmerovávam na dashboard za 3 sekundy...</p>
@@ -116,7 +114,6 @@ export default function ConfirmEmailPage() {
 
           {status === 'error' && (
             <>
-              <div className="text-6xl mb-4">❌</div>
               <h1 className="text-3xl font-bold mb-4 text-white">Chyba</h1>
               <p className="text-gray-300 mb-6">Nepodarilo sa overiť email. Link mohol expírovať alebo je neplatný.</p>
               <div className="flex gap-4 justify-center">

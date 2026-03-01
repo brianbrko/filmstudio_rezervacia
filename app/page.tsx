@@ -1,4 +1,4 @@
-import Link from 'next/link'
+﻿import Link from 'next/link'
 import Image from 'next/image'
 
 export default function Home() {
@@ -70,7 +70,6 @@ export default function Home() {
             className="group p-12 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 rounded-2xl shadow-2xl hover:shadow-amber-500/50 transition-all border-2 border-amber-400 hover:scale-105"
           >
             <div className="text-center">
-              <div className="text-6xl mb-4">🔑</div>
               <h2 className="text-3xl font-bold mb-3 text-white">
                 Prihlásenie
               </h2>
@@ -85,7 +84,6 @@ export default function Home() {
             className="group p-12 bg-gray-800 rounded-2xl shadow-2xl hover:shadow-amber-500/30 transition-all border-2 border-amber-500/50 hover:border-amber-500 hover:scale-105"
           >
             <div className="text-center">
-              <div className="text-6xl mb-4">✨</div>
               <h2 className="text-3xl font-bold mb-3 text-white">
                 Registrácia
               </h2>

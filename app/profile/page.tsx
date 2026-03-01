@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -174,10 +174,10 @@ export default function ProfilePage() {
         } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
           <div className="flex items-start gap-2 sm:gap-3">
             <span className="text-xl sm:text-2xl">
-              {notification.type === 'error' ? '❌' :
-               notification.type === 'success' ? '✅' :
-               notification.type === 'warning' ? '⚠️' :
-               'ℹ️'}
+              {notification.type === 'error' ? '' :
+               notification.type === 'success' ? '' :
+               notification.type === 'warning' ? '️' :
+               ''}
             </span>
             <div className="flex-1">
               {notification.title && (
@@ -200,7 +200,7 @@ export default function ProfilePage() {
           <div className="flex items-center gap-3 sm:gap-4">
             <img src="/images/logo.png" alt="Logo" className="w-12 h-12 sm:w-16 sm:h-16 object-contain" />
             <div>
-              <p className="text-sm sm:text-base text-gray-300">{profile?.full_name} {profile?.role === 'admin' && '(👑 Admin)'}</p>
+              <p className="text-sm sm:text-base text-gray-300">{profile?.full_name} {profile?.role === 'admin' && '(Admin)'}</p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2 sm:gap-4 w-full sm:w-auto">
@@ -213,13 +213,13 @@ export default function ProfilePage() {
                 }
               }} 
               className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20 text-sm sm:text-base">
-              📅 Kalendár
+              Kalendár
             </button>
             {profile?.role === 'customer' && (
               <button 
                 onClick={() => router.push('/reservations')} 
                 className="flex-1 sm:flex-none px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
-                📋 Rezervácie
+                Rezervácie
               </button>
             )}
             <button 
@@ -274,7 +274,7 @@ export default function ProfilePage() {
                 placeholder="email@priklad.sk"
               />
               <p className="text-xs sm:text-sm text-gray-400 mt-1">
-                ⚠️ Pri zmene emailu budete odhlásený a musíte potvrdiť nový email
+                ️ Pri zmene emailu budete odhlásený a musíte potvrdiť nový email
               </p>
             </div>
 
@@ -314,13 +314,19 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 className="flex-1 px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/20 text-sm sm:text-base">
-                💾 Uložiť zmeny
+                Uložiť zmeny
               </button>
               <button
                 type="button"
-                onClick={() => router.push('/calendar')}
+                onClick={() => {
+                  if (profile?.role === 'customer') {
+                    router.push('/dashboard')
+                  } else {
+                    router.push('/calendar')
+                  }
+                }}
                 className="px-6 sm:px-8 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-sm sm:text-base">
-                ✕ Zrušiť
+                Zrušiť
               </button>
             </div>
           </form>
@@ -332,7 +338,7 @@ export default function ProfilePage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-amber-500/50 shadow-2xl shadow-amber-500/20">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="text-6xl mb-4">️</div>
               <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
               <p className="text-gray-300">
                 Naozaj sa chcete odhlásiť zo svojho účtu?
@@ -353,7 +359,7 @@ export default function ProfilePage() {
                 }}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg shadow-amber-500/30"
               >
-                ✅ Áno, odhlásiť
+                Áno, odhlásiť
               </button>
             </div>
           </div>

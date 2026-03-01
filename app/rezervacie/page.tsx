@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -56,7 +56,7 @@ export default function ReservationsPage() {
     if (error) {
       setMessage('Chyba pri vytváraní rezervácie: ' + error.message)
     } else {
-      setMessage('✅ Rezervácia bola úspešne vytvorená!')
+      setMessage('Rezervácia bola úspešne vytvorená!')
       setFormData({
         customer_name: '',
         customer_email: '',
@@ -178,7 +178,7 @@ export default function ReservationsPage() {
           </div>
 
           {message && (
-            <div className={`p-4 rounded-lg ${message.includes('✅') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
+            <div className={`p-4 rounded-lg ${message.includes('') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
               {message}
             </div>
           )}

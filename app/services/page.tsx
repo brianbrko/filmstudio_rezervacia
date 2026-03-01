@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -84,7 +84,7 @@ export default function ServicesPage() {
       .single()
     
     if (!profileData) {
-      showNotification('error', 'Používateľ nebol nájdený!', '❌ Chyba')
+      showNotification('error', 'Používateľ nebol nájdený!', 'Chyba')
       setTimeout(() => router.push('/calendar'), 1000)
       return
     }
@@ -94,7 +94,7 @@ export default function ServicesPage() {
                      (profileData.role === 'employee' && profileData.permissions?.services === true)
     
     if (!hasAccess) {
-      showNotification('error', 'Nemáte oprávnenie na túto stránku!', '🔒 Bez oprávnenia')
+      showNotification('error', 'Nemáte oprávnenie na túto stránku!', 'Bez oprávnenia')
       setTimeout(() => router.push('/calendar'), 1000)
       return
     }
@@ -132,7 +132,7 @@ export default function ServicesPage() {
     
     // Validácia
     if (isNaN(serviceData.price) || serviceData.price <= 0) {
-      showNotification('error', 'Zadajte kladné číslo.', '💰 Neplatná cena')
+      showNotification('error', 'Zadajte kladné číslo.', 'Neplatná cena')
       return
     }
     
@@ -149,9 +149,9 @@ export default function ServicesPage() {
         .eq('id', editingId)
       
       if (error) {
-        showNotification('error', error.message, '❌ Chyba pri úprave')
+        showNotification('error', error.message, 'Chyba pri úprave')
       } else {
-        showNotification('success', 'Služba bola úspešne upravená', '✅ Úspech')
+        showNotification('success', 'Služba bola úspešne upravená', 'Úspech')
         setEditingId(null)
         setFormData({ name: '', description: '', price: '', duration_minutes: '' })
         setShowAddForm(false)
@@ -164,9 +164,9 @@ export default function ServicesPage() {
         .insert([serviceData])
       
       if (error) {
-        showNotification('error', error.message, '❌ Chyba pri vytváraní')
+        showNotification('error', error.message, 'Chyba pri vytváraní')
       } else {
-        showNotification('success', 'Služba bola úspešne pridaná', '✅ Úspech')
+        showNotification('success', 'Služba bola úspešne pridaná', 'Úspech')
         setShowAddForm(false)
         setFormData({ name: '', description: '', price: '', duration_minutes: '' })
         await fetchServices()
@@ -192,7 +192,7 @@ export default function ServicesPage() {
 
   const handleDelete = async (id: string, name: string) => {
     showConfirmation(
-      '🗑️ Vymazať službu?',
+      '️ Vymazať službu?',
       `Naozaj chcete vymazať službu "${name}"? Táto akcia sa nedá vrátiť späť.`,
       async () => {
         const { error } = await supabase
@@ -201,9 +201,9 @@ export default function ServicesPage() {
           .eq('id', id)
         
         if (error) {
-          showNotification('error', error.message, '❌ Chyba pri mazaní')
+          showNotification('error', error.message, 'Chyba pri mazaní')
         } else {
-          showNotification('success', 'Služba bola úspešne vymazaná', '✅ Úspech')
+          showNotification('success', 'Služba bola úspešne vymazaná', 'Úspech')
           fetchServices()
         }
       }
@@ -238,10 +238,10 @@ export default function ServicesPage() {
           `}>
             <div className="flex items-start gap-2 sm:gap-3">
               <div className="text-xl sm:text-3xl">
-                {notification.type === 'error' && '❌'}
-                {notification.type === 'success' && '✅'}
-                {notification.type === 'warning' && '⚠️'}
-                {notification.type === 'info' && 'ℹ️'}
+                {notification.type === 'error' && ''}
+                {notification.type === 'success' && ''}
+                {notification.type === 'warning' && '️'}
+                {notification.type === 'info' && ''}
               </div>
               <div className="flex-1">
                 {notification.title && (
@@ -275,13 +275,13 @@ export default function ServicesPage() {
                 onClick={handleCancelConfirm}
                 className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-amber-500/30 transition-colors text-sm sm:text-base"
               >
-                ✕ Zrušiť
+                Zrušiť
               </button>
               <button
                 onClick={handleConfirm}
                 className="px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors text-sm sm:text-base"
               >
-                🗑️ Vymazať
+                ️ Vymazať
               </button>
             </div>
           </div>
@@ -293,7 +293,7 @@ export default function ServicesPage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">⚙️ Správa služieb</h1>
+              <h1 className="text-xl sm:text-3xl font-bold">️ Správa služieb</h1>
               <p className="text-gray-300 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
             </div>
             
@@ -302,31 +302,31 @@ export default function ServicesPage() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
             >
-              {isMobileMenuOpen ? '✕' : '☰'}
+              {isMobileMenuOpen ? '' : ''}
             </button>
             
             {/* Desktop menu - hidden on mobile */}
             <div className="hidden lg:flex gap-4">
               <button onClick={() => router.push('/calendar')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => router.push('/users')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 Odhlásiť
@@ -344,25 +344,25 @@ export default function ServicesPage() {
           >
             <div className="mt-4 space-y-2 pb-2">
               <button onClick={() => {router.push('/calendar'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
                 Odhlásiť
@@ -378,7 +378,7 @@ export default function ServicesPage() {
           <button
             onClick={() => setShowAddForm(true)}
             className="mb-4 sm:mb-6 px-6 sm:px-8 py-3 sm:py-4 bg-green-600 text-white rounded-lg font-bold text-base sm:text-lg hover:bg-green-700 transition-colors w-full sm:w-auto">
-            ➕ Pridať novú službu
+            Pridať novú službu
           </button>
         )}
 
@@ -386,7 +386,7 @@ export default function ServicesPage() {
         {showAddForm && (
           <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-amber-500/30 mb-4 sm:mb-6">
             <h2 className="text-xl sm:text-2xl font-bold mb-3 sm:mb-4">
-              {editingId ? '✏️ Upraviť službu' : '➕ Nová služba'}
+              {editingId ? '️ Upraviť službu' : 'Nová služba'}
             </h2>
             <form onSubmit={handleSubmit} className="space-y-3 sm:space-y-4">
               <div>
@@ -443,13 +443,13 @@ export default function ServicesPage() {
                 <button
                   type="submit"
                   className="px-6 sm:px-8 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
-                  {editingId ? '💾 Uložiť zmeny' : '➕ Pridať službu'}
+                  {editingId ? 'Uložiť zmeny' : 'Pridať službu'}
                 </button>
                 <button
                   type="button"
                   onClick={handleCancel}
                   className="px-6 sm:px-8 py-2 sm:py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 border-2 border-amber-500/30 text-sm sm:text-base">
-                  ✕ Zrušiť
+                  Zrušiť
                 </button>
               </div>
             </form>
@@ -458,7 +458,7 @@ export default function ServicesPage() {
 
         {/* Services List */}
         <div className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-amber-500/30">
-          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">📋 Zoznam služieb ({services.length})</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-4 sm:mb-6">Zoznam služieb ({services.length})</h2>
           
           {services.length === 0 ? (
             <p className="text-gray-300 text-center py-6 sm:py-8 text-sm sm:text-base">Žiadne služby</p>
@@ -476,7 +476,7 @@ export default function ServicesPage() {
                       )}
                       <div className="flex flex-wrap gap-2 sm:gap-4 mt-2">
                         <span className="px-2 sm:px-3 py-1 bg-green-600/20 text-green-400 rounded-lg font-bold text-xs sm:text-sm border border-green-500/30">
-                          💰 {service.price}€
+                          {service.price}€
                         </span>
                         <span className="px-2 sm:px-3 py-1 bg-blue-600/20 text-blue-400 rounded-lg font-bold text-xs sm:text-sm border border-blue-500/30">
                           ⏱️ {service.duration_minutes} min
@@ -487,12 +487,12 @@ export default function ServicesPage() {
                       <button
                         onClick={() => handleEdit(service)}
                         className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-xs sm:text-sm">
-                        ✏️ Upraviť
+                        ️ Upraviť
                       </button>
                       <button
                         onClick={() => handleDelete(service.id, service.name)}
                         className="flex-1 sm:flex-none px-3 sm:px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 text-xs sm:text-sm">
-                        🗑️ Vymazať
+                        ️ Vymazať
                       </button>
                     </div>
                   </div>
@@ -508,7 +508,7 @@ export default function ServicesPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 text-white rounded-2xl p-6 sm:p-8 max-w-md w-full border-4 border-amber-500/50 shadow-2xl">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="text-6xl mb-4">️</div>
               <h2 className="text-2xl font-bold mb-2">Odhlásiť sa?</h2>
               <p className="text-gray-300">
                 Naozaj sa chcete odhlásiť z administrátorského účtu?
@@ -529,7 +529,7 @@ export default function ServicesPage() {
                 }}
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg"
               >
-                ✅ Áno, odhlásiť
+                Áno, odhlásiť
               </button>
             </div>
           </div>

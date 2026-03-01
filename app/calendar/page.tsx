@@ -1,9 +1,10 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { getEmployeeWorkingHoursForDate } from '@/lib/workingHours'
 
 export default function CalendarPage() {
   const router = useRouter()
@@ -19,6 +20,7 @@ export default function CalendarPage() {
   const [employeeWorkingHours, setEmployeeWorkingHours] = useState<any[]>([]) // Pracovné hodiny zamestnankýň
   const [specificDayHours, setSpecificDayHours] = useState<any[]>([]) // Špecifické hodiny na konkrétny deň
   const [specialDays, setSpecialDays] = useState<any[]>([]) // Špeciálne dni
+  const [employeeVacations, setEmployeeVacations] = useState<any[]>([]) // Dovolenky zamestnankýň
   
   // Custom drag state
   const [isDragging, setIsDragging] = useState(false)
@@ -227,14 +229,88 @@ export default function CalendarPage() {
           filter: `reservation_date=eq.${dateStr}`
         },
         (payload) => {
-          console.log('🔄 Real-time zmena v rezerváciách:', payload)
+          console.log('Real-time zmena v rezerváciách:', payload)
           fetchData() // Automaticky obnov dáta
+        }
+      )
+      .subscribe()
+    
+    // Subscribe to employee_day_overrides changes
+    const dayOverridesSubscription = supabase
+      .channel('day-overrides-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employee_day_overrides',
+          filter: `specific_date=eq.${dateStr}`
+        },
+        () => {
+          console.log('Real-time zmena v employee_day_overrides')
+          fetchData()
+        }
+      )
+      .subscribe()
+    
+    // Subscribe to special_days changes
+    const specialDaysSubscription = supabase
+      .channel('special-days-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'special_days',
+          filter: `date=eq.${dateStr}`
+        },
+        () => {
+          console.log('Real-time zmena v special_days')
+          fetchData()
+        }
+      )
+      .subscribe()
+    
+    // Subscribe to employee_working_hours changes (pravidelné hodiny)
+    const employeeWorkingHoursSubscription = supabase
+      .channel('employee-hours-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'employee_working_hours'
+        },
+        () => {
+          console.log('Real-time zmena v employee_working_hours')
+          fetchData()
+        }
+      )
+      .subscribe()
+    
+    // Subscribe to working_hours changes (defaultné hodiny)
+    const workingHoursSubscription = supabase
+      .channel('working-hours-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'working_hours'
+        },
+        () => {
+          console.log('Real-time zmena v working_hours')
+          fetchData()
         }
       )
       .subscribe()
     
     return () => {
       reservationSubscription.unsubscribe()
+      dayOverridesSubscription.unsubscribe()
+      specialDaysSubscription.unsubscribe()
+      employeeWorkingHoursSubscription.unsubscribe()
+      workingHoursSubscription.unsubscribe()
     }
   }, [profile, selectedDate])
   
@@ -270,10 +346,10 @@ export default function CalendarPage() {
   }
 
   const fetchData = async () => {
-    console.log('🔄 Načítavam dáta...')
+    console.log('Načítavam dáta...')
     const dateStr = formatDateToString(selectedDate)
     
-    const [e, s, r, wh, ewh, sdh, sd] = await Promise.all([
+    const [e, s, r, wh, ewh, sdh, sd, ev] = await Promise.all([
       supabase.from('employees').select('*').eq('is_active', true).order('name'),
       supabase.from('services').select('*').order('price'),
       supabase.from('reservations').select('*')
@@ -281,7 +357,8 @@ export default function CalendarPage() {
       supabase.from('working_hours').select('*').order('day_of_week'),
       supabase.from('employee_working_hours').select('*').order('day_of_week'),
       supabase.from('employee_day_overrides').select('*').eq('specific_date', dateStr),
-      supabase.from('special_days').select('*').eq('date', dateStr).maybeSingle()
+      supabase.from('special_days').select('*').eq('date', dateStr).maybeSingle(),
+      supabase.from('employee_vacations').select('*')
     ])
     
     if (e.data) {
@@ -298,6 +375,13 @@ export default function CalendarPage() {
     if (wh.data) setWorkingHours(wh.data)
     if (ewh.data) setEmployeeWorkingHours(ewh.data)
     if (sdh.data) setSpecificDayHours(sdh.data)
+    // Filtruj dovolenky pre vybraný dátum
+    if (ev.data) {
+      const filteredVacations = ev.data.filter((v: any) => 
+        v.start_date <= dateStr && v.end_date >= dateStr
+      )
+      setEmployeeVacations(filteredVacations)
+    }
     if (sd.data) {
       setSpecialDays([sd.data])
     } else {
@@ -305,7 +389,7 @@ export default function CalendarPage() {
     }
     
     if (r.error) {
-      console.error('❌ Chyba pri načítaní rezervácií:', r.error)
+      console.error('Chyba pri načítaní rezervácií:', r.error)
       return
     }
     
@@ -323,10 +407,10 @@ export default function CalendarPage() {
           ])
           
           if (serviceData.error) {
-            console.error('❌ Chyba pri načítaní služby:', serviceData.error)
+            console.error('Chyba pri načítaní služby:', serviceData.error)
           }
           if (userData.error) {
-            console.error('❌ Chyba pri načítaní používateľa:', userData.error)
+            console.error('Chyba pri načítaní používateľa:', userData.error)
           }
           
           return {
@@ -338,14 +422,14 @@ export default function CalendarPage() {
         })
       )
       
-      console.log('✅ Načítané rezervácie:', enrichedReservations.length)
+      console.log('Načítané rezervácie:', enrichedReservations.length)
       setReservations(enrichedReservations)
     }
   }
 
   // Fetch weekly data - načíta rezervácie pre celý týždeň
   const fetchWeeklyData = async () => {
-    console.log('🔄 Načítavam týždenné dáta...')
+    console.log('Načítavam týždenné dáta...')
     const weekDays = getWeekDays(weekStartDate)
     const startDate = formatDateToString(weekDays[0])
     const endDate = formatDateToString(weekDays[6])
@@ -377,7 +461,7 @@ export default function CalendarPage() {
       .order('reservation_time')
     
     if (error) {
-      console.error('❌ Chyba pri načítaní týždenných rezervácií:', error)
+      console.error('Chyba pri načítaní týždenných rezervácií:', error)
       return
     }
     
@@ -405,7 +489,7 @@ export default function CalendarPage() {
         })
       )
       
-      console.log('✅ Načítané týždenné rezervácie:', enrichedReservations.length)
+      console.log('Načítané týždenné rezervácie:', enrichedReservations.length)
       setWeeklyReservations(enrichedReservations)
     }
   }
@@ -491,58 +575,25 @@ export default function CalendarPage() {
 
   // Získaj pracovné hodiny pre zamestnankyu na daný deň
   const getEmployeeWorkingHours = (employeeId: string) => {
-    const dayOfWeek = selectedDate.getDay() === 0 ? 6 : selectedDate.getDay() - 1 // 0 = Pondelok
+    const dateStr = formatDateToString(selectedDate)
     
-    // Najprv skontroluj špeciálny deň (celý salón zatvorený)
-    const specialDay = specialDays.find(sd => sd && !sd.is_closed)
-    if (specialDay) {
-      return { start: specialDay.start_time, end: specialDay.end_time, isWorking: true }
-    }
-    
-    // Ak je špeciálny deň zatvorený
-    if (specialDays.some(sd => sd && sd.is_closed)) {
-      return { start: '00:00', end: '00:00', isWorking: false }
-    }
-    
-    // Skontroluj špecifické hodiny pre túto zamestnankyu na tento konkrétny deň
-    const specificHours = specificDayHours.find(h => h.employee_id === employeeId)
-    if (specificHours) {
-      // Ak je start_time a end_time NULL, znamená to že nepracuje
-      if (!specificHours.start_time || !specificHours.end_time) {
-        return { start: '00:00', end: '00:00', isWorking: false }
-      }
-      return {
-        start: specificHours.start_time,
-        end: specificHours.end_time,
-        isWorking: true
-      }
-    }
-    
-    // Skontroluj individuálne pravidelné pracovné hodiny zamestnankyne (týždenné)
-    const empHours = employeeWorkingHours.find(h => 
-      h.employee_id === employeeId && h.day_of_week === dayOfWeek
+    // Použiť centralizovanú funkciu z lib/workingHours.ts
+    const result = getEmployeeWorkingHoursForDate(
+      dateStr,
+      employeeId,
+      specialDays,
+      employeeVacations,
+      specificDayHours,
+      employeeWorkingHours,
+      workingHours
     )
     
-    if (empHours) {
-      return {
-        start: empHours.start_time,
-        end: empHours.end_time,
-        isWorking: empHours.is_working
-      }
+    return {
+      start: result.startTime || '00:00',
+      end: result.endTime || '00:00',
+      isWorking: result.isWorking,
+      reason: result.reason  // Pridané reason pre rozlíšenie dovolenky
     }
-    
-    // Použij defaultné otváracie hodiny
-    const defaultHours = workingHours.find(h => h.day_of_week === dayOfWeek)
-    if (defaultHours) {
-      return {
-        start: defaultHours.start_time,
-        end: defaultHours.end_time,
-        isWorking: defaultHours.is_open
-      }
-    }
-    
-    // Fallback
-    return { start: '08:00', end: '18:00', isWorking: true }
   }
 
   // Skontroluj či je čas v pracovných hodinách
@@ -560,8 +611,9 @@ export default function CalendarPage() {
   // Skontroluj a vráť detailnú informáciu o pracovných hodinách
   const checkWorkingHoursDetailed = (employeeId: string, startMin: number, durationMin: number): {
     isValid: boolean
-    reason?: 'not_working' | 'outside_hours'
+    reason?: 'not_working' | 'outside_hours' | 'on_vacation' | 'special_day_closed'
     hours?: { start: string, end: string }
+    detailedReason?: string
   } => {
     const hours = getEmployeeWorkingHours(employeeId)
     
@@ -569,8 +621,9 @@ export default function CalendarPage() {
     if (!hours.isWorking) {
       return { 
         isValid: false, 
-        reason: 'not_working',
-        hours: { start: hours.start, end: hours.end }
+        reason: hours.reason || 'not_working',
+        hours: { start: hours.start, end: hours.end },
+        detailedReason: hours.reason
       }
     }
     
@@ -682,10 +735,14 @@ export default function CalendarPage() {
     // Kontrola pracovných hodín
     const hoursCheck = checkWorkingHoursDetailed(targetEmpId, totalMinutes, duration)
     if (!hoursCheck.isValid) {
-      if (hoursCheck.reason === 'not_working') {
-        showNotification('error', 'Zamestnankyňa nepracuje v tento deň', '🚫 Nepracovný deň')
+      if (hoursCheck.reason === 'on_vacation') {
+        showNotification('error', 'Zamestnankyňa má dovolenku v tento deň', 'Dovolenka')
+      } else if (hoursCheck.reason === 'special_day_closed') {
+        showNotification('error', 'Kaderníctvo je v tento deň zatvorené', 'Sviatky')
+      } else if (hoursCheck.reason === 'not_working') {
+        showNotification('error', 'Zamestnankyňa nepracuje v tento deň', 'Nepracovný deň')
       } else {
-        showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, '⏰ Mimo pracovných hodín')
+        showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, 'Mimo pracovných hodín')
       }
       setIsDragging(false)
       setDraggedItem(null)
@@ -693,7 +750,7 @@ export default function CalendarPage() {
     }
     
     const time = minutesToTime(totalMinutes)
-    console.log('📦 Drop na:', targetEmpId, time)
+    console.log('Drop na:', targetEmpId, time)
     
     // Uložiť dočasné údaje pre potvrdenie
     setPendingMove({
@@ -717,16 +774,33 @@ export default function CalendarPage() {
     const { targetEmpId, time, totalMinutes, duration, isNewReservation, draggedItem } = pendingMove
     
     try {
+      // Kontrola pracovných hodín pre cieľový čas
+      const hoursCheck = checkWorkingHoursDetailed(targetEmpId, totalMinutes, duration)
+      if (!hoursCheck.isValid) {
+        if (hoursCheck.reason === 'on_vacation') {
+          showNotification('error', 'Zamestnankyňa má dovolenku v tento deň', 'Dovolenka')
+        } else if (hoursCheck.reason === 'special_day_closed') {
+          showNotification('error', 'Kaderníctvo je v tento deň zatvorené', 'Sviatky')
+        } else if (hoursCheck.reason === 'not_working') {
+          showNotification('error', 'Zamestnankyňa nepracuje v tento deň', 'Nepracovný deň')
+        } else {
+          showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, 'Mimo pracovných hodín')
+        }
+        setShowConfirmModal(false)
+        setPendingMove(null)
+        return
+      }
+      
       if (isNewReservation) {
         // Nová služba z drag & drop
         if (hasCollision(targetEmpId, totalMinutes, duration)) {
-          showNotification('error', 'V tomto čase už je obsadený termín', '⚠️ Čas obsadený')
+          showNotification('error', 'V tomto čase už je obsadený termín', 'Čas obsadený')
           setShowConfirmModal(false)
           setPendingMove(null)
           return
         }
         
-        console.log('➕ Vytváram novú rezerváciu...')
+        console.log('Vytváram novú rezerváciu...')
         // @ts-ignore
         const { error } = await supabase.from('reservations').insert([{
           employee_id: targetEmpId,
@@ -742,29 +816,29 @@ export default function CalendarPage() {
         }]).select()
         
         if (error) {
-          console.error('❌ Insert error:', error)
-          showNotification('error', error.message, '❌ Chyba pri vytváraní')
+          console.error('Insert error:', error)
+          showNotification('error', error.message, 'Chyba pri vytváraní')
         } else {
-          console.log('✅ Rezervácia vytvorená')
-          showNotification('success', 'Rezervácia bola úspešne vytvorená', '✅ Úspech')
+          console.log('Rezervácia vytvorená')
+          showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
         }
       } else {
         // Presun existujúcej rezervácie
         if (!canEdit(draggedItem)) {
-          showNotification('error', 'Nemôžete presúvať cudzie rezervácie!', '🔒 Bez oprávnenia')
+          showNotification('error', 'Nemôžete presúvať cudzie rezervácie!', 'Bez oprávnenia')
           setShowConfirmModal(false)
           setPendingMove(null)
           return
         }
         
         if (hasCollision(targetEmpId, totalMinutes, duration, draggedItem.id)) {
-          showNotification('error', 'Cieľový čas je obsadený!', '⚠️ Čas obsadený')
+          showNotification('error', 'Cieľový čas je obsadený!', 'Čas obsadený')
           setShowConfirmModal(false)
           setPendingMove(null)
           return
         }
         
-        console.log('🔄 Presúvam rezerváciu...')
+        console.log('Presúvam rezerváciu...')
         
         // Pre súkromné termíny musíme prepočítať end_time podľa trvania
         let updateData: any = { 
@@ -793,18 +867,18 @@ export default function CalendarPage() {
           .select()
         
         if (error) {
-          console.error('❌ Update error:', error)
-          showNotification('error', error.message, '❌ Chyba pri aktualizovaní')
+          console.error('Update error:', error)
+          showNotification('error', error.message, 'Chyba pri aktualizovaní')
         } else {
-          console.log('✅ Rezervácia presunutá')
-          showNotification('success', 'Rezervácia bola úspešne presunutá', '✅ Úspech')
+          console.log('Rezervácia presunutá')
+          showNotification('success', 'Rezervácia bola úspešne presunutá', 'Úspech')
         }
       }
       
       await fetchData()
     } catch (err: any) {
-      console.error('❌ Move error:', err)
-      showNotification('error', err.message, '❌ Chyba')
+      console.error('Move error:', err)
+      showNotification('error', err.message, 'Chyba')
     }
     
     setShowConfirmModal(false)
@@ -862,7 +936,7 @@ export default function CalendarPage() {
   const openCreateModal = () => {
     // Kontrola či je používateľ zablokovaný
     if (profile?.is_blocked && profile?.role !== 'admin') {
-      showNotification('error', 'Váš účet bol zablokovaný administrátorom. Nemôžete vytvárať rezervácie.', '🚫 Účet zablokovaný')
+      showNotification('error', 'Váš účet bol zablokovaný administrátorom. Nemôžete vytvárať rezervácie.', 'Účet zablokovaný')
       return
     }
 
@@ -899,8 +973,12 @@ export default function CalendarPage() {
     // Skontroluj pracovné hodiny
     const hoursCheck = checkWorkingHoursDetailed(editForm.employee_id, newTime, duration)
     if (!hoursCheck.isValid) {
-      if (hoursCheck.reason === 'not_working') {
-        showNotification('error', 'Zamestnankyňa nepracuje v tento deň', '🚫 Nepracovný deň')
+      if (hoursCheck.reason === 'on_vacation') {
+        showNotification('error', 'Zamestnankyňa má dovolenku v tento deň', '️ Dovolenka')
+      } else if (hoursCheck.reason === 'special_day_closed') {
+        showNotification('error', 'Kaderníctvo je v tento deň zatvorené', 'Sviatky')
+      } else if (hoursCheck.reason === 'not_working') {
+        showNotification('error', 'Zamestnankyňa nepracuje v tento deň', 'Nepracovný deň')
       } else {
         showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, '⏰ Mimo pracovných hodín')
       }
@@ -909,7 +987,7 @@ export default function CalendarPage() {
     
     // Skontroluj kolízie
     if (hasCollision(editForm.employee_id, newTime, duration, editingReservation?.id)) {
-      showNotification('error', 'V tomto čase už je obsadený termín', '⚠️ Čas obsadený')
+      showNotification('error', 'V tomto čase už je obsadený termín', 'Čas obsadený')
       return
     }
     
@@ -936,11 +1014,11 @@ export default function CalendarPage() {
         .insert([{ ...reservationData, user_id: user?.id }])
       
       if (error) {
-        console.error('❌ Create error:', error)
-        showNotification('error', error.message, '❌ Chyba pri vytváraní')
+        console.error('Create error:', error)
+        showNotification('error', error.message, 'Chyba pri vytváraní')
       } else {
-        console.log('✅ Rezervácia vytvorená')
-        showNotification('success', 'Rezervácia bola úspešne vytvorená', '✅ Úspech')
+        console.log('Rezervácia vytvorená')
+        showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
         setShowEditModal(false)
         await fetchData()
       }
@@ -954,11 +1032,11 @@ export default function CalendarPage() {
         .eq('id', editingReservation.id)
       
       if (error) {
-        console.error('❌ Update error:', error)
-        showNotification('error', error.message, '❌ Chyba pri úprave')
+        console.error('Update error:', error)
+        showNotification('error', error.message, 'Chyba pri úprave')
       } else {
-        console.log('✅ Rezervácia upravená')
-        showNotification('success', 'Rezervácia bola úspešne upravená', '✅ Úspech')
+        console.log('Rezervácia upravená')
+        showNotification('success', 'Rezervácia bola úspešne upravená', 'Úspech')
         setShowEditModal(false)
         setEditingReservation(null)
         await fetchData()
@@ -970,7 +1048,7 @@ export default function CalendarPage() {
     e.preventDefault()
     
     if (profile?.role !== 'admin' && profile?.role !== 'employee') {
-      showNotification('error', 'Iba admin a zamestnanci môžu vytvárať súkromné termíny!', '🔒 Bez oprávnenia')
+      showNotification('error', 'Iba admin a zamestnanci môžu vytvárať súkromné termíny!', 'Bez oprávnenia')
       return
     }
     
@@ -980,24 +1058,28 @@ export default function CalendarPage() {
     const duration = endMinutes - startMinutes
     
     if (duration <= 0) {
-      showNotification('error', 'Čas ukončenia musí byť po čase začiatku!', '⏰ Neplatný časový rozsah')
+      showNotification('error', 'Čas ukončenia musí byť po čase začiatku!', 'Neplatný časový rozsah')
       return
     }
     
     // Kontrola pracovných hodín
     const hoursCheck = checkWorkingHoursDetailed(privateForm.employee_id, startMinutes, duration)
     if (!hoursCheck.isValid) {
-      if (hoursCheck.reason === 'not_working') {
-        showNotification('error', 'Zamestnankyňa nepracuje v tento deň', '🚫 Nepracovný deň')
+      if (hoursCheck.reason === 'on_vacation') {
+        showNotification('error', 'Zamestnankyňa má dovolenku v tento deň', 'Dovolenka')
+      } else if (hoursCheck.reason === 'special_day_closed') {
+        showNotification('error', 'Kaderníctvo je v tento deň zatvorené', 'Sviatky')
+      } else if (hoursCheck.reason === 'not_working') {
+        showNotification('error', 'Zamestnankyňa nepracuje v tento deň', 'Nepracovný deň')
       } else {
-        showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, '⏰ Mimo pracovných hodín')
+        showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, 'Mimo pracovných hodín')
       }
       return
     }
     
     // Skontroluj kolízie (pri editácii vynechaj aktuálnu rezerváciu)
     if (hasCollision(privateForm.employee_id, startMinutes, duration, editingPrivateEvent?.id)) {
-      showNotification('error', 'V tomto čase už je obsadený termín', '⚠️ Čas obsadený')
+      showNotification('error', 'V tomto čase už je obsadený termín', 'Čas obsadený')
       return
     }
     
@@ -1018,11 +1100,11 @@ export default function CalendarPage() {
           .eq('id', editingPrivateEvent.id)
         
         if (error) {
-          console.error('❌ Update error:', error)
-          showNotification('error', error.message, '❌ Chyba pri aktualizácii')
+          console.error('Update error:', error)
+          showNotification('error', error.message, 'Chyba pri aktualizácii')
         } else {
-          console.log('✅ Súkromný termín aktualizovaný')
-          showNotification('success', 'Súkromný termín bol úspešne aktualizovaný', '✅ Úspech')
+          console.log('Súkromný termín aktualizovaný')
+          showNotification('success', 'Súkromný termín bol úspešne aktualizovaný', 'Úspech')
           setShowPrivateModal(false)
           setEditingPrivateEvent(null)
           setPrivateForm({
@@ -1055,11 +1137,11 @@ export default function CalendarPage() {
         }]).select()
         
         if (error) {
-          console.error('❌ Insert error:', error)
-          showNotification('error', error.message, '❌ Chyba pri vytváraní')
+          console.error('Insert error:', error)
+          showNotification('error', error.message, 'Chyba pri vytváraní')
         } else {
-          console.log('✅ Súkromný termín vytvorený')
-          showNotification('success', 'Súkromný termín bol úspešne vytvorený', '✅ Úspech')
+          console.log('Súkromný termín vytvorený')
+          showNotification('success', 'Súkromný termín bol úspešne vytvorený', 'Úspech')
           setShowPrivateModal(false)
           setPrivateForm({
             employee_id: '',
@@ -1072,8 +1154,8 @@ export default function CalendarPage() {
         }
       }
     } catch (err: any) {
-      console.error('❌ Error:', err)
-      showNotification('error', err.message, '❌ Chyba')
+      console.error('Error:', err)
+      showNotification('error', err.message, 'Chyba')
     }
   }
 
@@ -1091,24 +1173,24 @@ export default function CalendarPage() {
   const deleteRes = async (id: string, res: any) => {
     try {
       if (!canEdit(res)) {
-        showNotification('error', 'Nemôžete vymazať cudzie rezervácie!', '🔒 Bez oprávnenia')
+        showNotification('error', 'Nemôžete vymazať cudzie rezervácie!', 'Bez oprávnenia')
         return
       }
       
-      console.log('🗑️ Mažem rezerváciu:', id)
+      console.log('Mažem rezerváciu:', id)
       const { error } = await supabase.from('reservations').delete().eq('id', id)
       
       if (error) {
-        console.error('❌ Delete error:', error)
-        showNotification('error', error.message, '❌ Chyba pri mazaní')
+        console.error('Delete error:', error)
+        showNotification('error', error.message, 'Chyba pri mazaní')
       } else {
-        console.log('✅ Rezervácia vymazaná')
-        showNotification('success', 'Rezervácia bola úspešne vymazaná', '✅ Úspech')
+        console.log('Rezervácia vymazaná')
+        showNotification('success', 'Rezervácia bola úspešne vymazaná', 'Úspech')
         await fetchData()
       }
     } catch (err: any) {
-      console.error('❌ Delete catch error:', err)
-      showNotification('error', err.message, '❌ Chyba pri mazaní')
+      console.error('Delete catch error:', err)
+      showNotification('error', err.message, 'Chyba pri mazaní')
     }
   }
   
@@ -1157,7 +1239,7 @@ export default function CalendarPage() {
       } else {
         // Uložíme špecifické pracovné hodiny
         if (!specificDayHoursForm.start_time || !specificDayHoursForm.end_time) {
-          showNotification('error', 'Vyplňte začiatok a koniec pracovnej doby', '⚠️ Chýba informácia')
+          showNotification('error', 'Vyplňte začiatok a koniec pracovnej doby', 'Chýba informácia')
           return
         }
         
@@ -1197,11 +1279,11 @@ export default function CalendarPage() {
         end_time: '',
         is_closed: false
       })
-      showNotification('success', 'Pracovné hodiny boli úspešne uložené', '✅ Úspech')
+      showNotification('success', 'Pracovné hodiny boli úspešne uložené', 'Úspech')
       await fetchData()
     } catch (err: any) {
-      console.error('❌ Error:', err)
-      showNotification('error', err.message, '❌ Chyba pri ukladaní')
+      console.error('Error:', err)
+      showNotification('error', err.message, 'Chyba pri ukladaní')
     }
   }
 
@@ -1259,10 +1341,10 @@ export default function CalendarPage() {
           `}>
             <div className="flex items-start gap-3">
               <div className="text-3xl">
-                {notification.type === 'error' && '❌'}
-                {notification.type === 'success' && '✅'}
-                {notification.type === 'warning' && '⚠️'}
-                {notification.type === 'info' && 'ℹ️'}
+                {notification.type === 'error' && '!'}
+                {notification.type === 'success' && ''}
+                {notification.type === 'warning' && ''}
+                {notification.type === 'info' && 'i'}
               </div>
               <div className="flex-1">
                 {notification.title && (
@@ -1296,13 +1378,13 @@ export default function CalendarPage() {
                 onClick={handleCancelConfirmAction}
                 className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold hover:bg-gray-600 transition-colors border-2 border-amber-500/30"
               >
-                ✕ Zrušiť
+                Zrušiť
               </button>
               <button
                 onClick={handleConfirmAction}
                 className="px-6 py-3 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-lg font-bold hover:from-red-600 hover:to-red-700 transition-colors shadow-lg"
               >
-                🗑️ Potvrdiť
+                Potvrdiť
               </button>
             </div>
           </div>
@@ -1313,8 +1395,8 @@ export default function CalendarPage() {
         <div className="max-w-[1800px] mx-auto">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">📅 Kalendár</h1>
-              <p className="text-gray-300 text-sm sm:text-base">{profile?.full_name} ({profile?.role === 'admin' ? '👑 Admin' : profile?.role === 'employee' ? '👔 Zamestnanec' : '👤 Zákazník'})</p>
+              <h1 className="text-xl sm:text-3xl font-bold">Kalendár</h1>
+              <p className="text-gray-300 text-sm sm:text-base">{profile?.full_name} ({profile?.role === 'admin' ? 'Admin' : profile?.role === 'employee' ? 'Zamestnanec' : 'Zákazník'})</p>
             </div>
             
             {/* Hamburger button - visible on mobile */}
@@ -1322,7 +1404,7 @@ export default function CalendarPage() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
             >
-              {isMobileMenuOpen ? '✕' : '☰'}
+              {isMobileMenuOpen ? '' : ''}
             </button>
             
             {/* Desktop menu - hidden on mobile */}
@@ -1330,29 +1412,29 @@ export default function CalendarPage() {
               {/* Služby - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => router.push('/services')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⚙️ Služby
+                  Služby
                 </button>
               )}
               {/* Pracovné hodiny - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => router.push('/working-hours')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {/* Štatistiky - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               {/* Používatelia - admin alebo zamestnanec s oprávnením */}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => router.push('/users')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 Odhlásiť
@@ -1371,26 +1453,26 @@ export default function CalendarPage() {
             <div className="mt-4 space-y-2 pb-2">
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⚙️ Služby
+                  Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.working_hours)) && (
                 <button onClick={() => {router.push('/working-hours'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⏰ Pracovné hodiny
+                  Pracovné hodiny
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
-              {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
+              {(profile?.role === 'admin' || (profile?.role === 'employee' &&profile?.permissions?.users)) && (
                 <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
                 Odhlásiť
@@ -1409,7 +1491,7 @@ export default function CalendarPage() {
             className="w-full p-3 sm:p-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
           >
             <div className="flex items-center gap-2">
-              <span className="text-lg font-bold">📅 Kalendár</span>
+              <span className="text-lg font-bold">Kalendár</span>
               <span className="text-xs text-gray-600">
                 {selectedDate.toLocaleDateString('sk-SK', {day:'numeric',month:'short'})}
               </span>
@@ -1504,7 +1586,7 @@ export default function CalendarPage() {
                   setCalendarView(today)
                 }} 
                 className="w-full mt-3 py-2 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300 text-sm">
-                📅 Dnes
+                Dnes
               </button>
 
               <div className="mt-3 p-2 bg-gray-50 rounded-lg border-2 border-gray-900">
@@ -1593,7 +1675,7 @@ export default function CalendarPage() {
                 setCalendarView(today)
               }} 
               className="w-full mt-4 py-2 bg-gray-200 text-black rounded-lg font-bold border-2 border-black hover:bg-gray-300">
-              📅 Dnes
+              Dnes
             </button>
 
             {/* Zobrazenie vybraného dátumu */}
@@ -1622,7 +1704,6 @@ export default function CalendarPage() {
                   setShowBookingModal(true)
                 }}
                 className="w-full py-4 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl font-bold text-xl hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg">
-                <span className="text-3xl">📅</span>
                 <span>Nová rezervácia</span>
               </button>
               
@@ -1639,7 +1720,6 @@ export default function CalendarPage() {
                   setShowPrivateModal(true)
                 }}
                 className="w-full py-4 bg-purple-600 text-white rounded-xl font-bold text-xl hover:bg-purple-700 transition-all flex items-center justify-center gap-3">
-                <span className="text-3xl">🔒</span>
                 <span>Súkromný termín</span>
               </button>
               
@@ -1656,7 +1736,7 @@ export default function CalendarPage() {
           <div className="mb-4 sm:mb-6 px-2 sm:px-0">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
               <h2 className="text-base sm:text-xl lg:text-2xl font-bold">
-                {viewMode === 'daily' ? '📅 Denný prehľad' : '📆 Týždenný prehľad'}
+                {viewMode === 'daily' ? 'Denný prehľad' : 'Týždenný prehľad'}
               </h2>
               
               <div className="flex gap-2 bg-gray-200 p-1 rounded-lg border-2 border-gray-900">
@@ -1668,7 +1748,7 @@ export default function CalendarPage() {
                       : 'bg-transparent text-black hover:bg-gray-300'
                   }`}
                 >
-                  📅 Denný
+                  Denný
                 </button>
                 <button
                   onClick={() => {
@@ -1681,7 +1761,7 @@ export default function CalendarPage() {
                       : 'bg-transparent text-black hover:bg-gray-300'
                   }`}
                 >
-                  📆 Týždenný
+                  Týždenný
                 </button>
               </div>
             </div>
@@ -1773,6 +1853,9 @@ export default function CalendarPage() {
                     ref={calendarRef}
                     data-employee-calendar={emp.id}
                     onClick={(e) => {
+                      // Iba pre admina a zamestnancov - obec zákazníci by nemali vidieť nedostupné časy
+                      if (profile?.role !== 'admin' && profile?.role !== 'employee') return
+                      
                       // Ak klikáme na samotný kalendár (nie na rezerváciu alebo šedý blok)
                       if (e.target === e.currentTarget || (e.target as HTMLElement).classList.contains('border-t')) {
                         const rect = e.currentTarget.getBoundingClientRect()
@@ -1781,7 +1864,26 @@ export default function CalendarPage() {
                         const totalMinutes = HOURS_START * 60 + snapToInterval(minutesFromStart)
                         const clickTime = minutesToTime(totalMinutes)
                         
-                        // Vypočítaj end_time (defaultne +1 hodina)
+                        // Skontroluj, či je tento čas v pracovných hodinách
+                        const hours = getEmployeeWorkingHours(emp.id)
+                        if (!hours.isWorking) {
+                          // Celý deň nepracuje - otvor modal na zmenu pracovných hodín
+                          setSelectedEmployeeForHours(emp)
+                          setShowWorkingHoursModal(true)
+                          return
+                        }
+                        
+                        const workStart = timeToMinutes(hours.start)
+                        const workEnd = timeToMinutes(hours.end)
+                        
+                        if (totalMinutes < workStart || totalMinutes >= workEnd) {
+                          // Mimo pracovných hodín - otvor modal na zmenu pracovných hodín
+                          setSelectedEmployeeForHours(emp)
+                          setShowWorkingHoursModal(true)
+                          return
+                        }
+                        
+                        // V rámci pracovných hodín - vypočítaj end_time (defaultne +1 hodina)
                         const endMinutes = totalMinutes + 60
                         const endTime = minutesToTime(endMinutes)
                         
@@ -1828,7 +1930,7 @@ export default function CalendarPage() {
                             }}
                           >
                             <div className="flex items-center justify-center h-full">
-                              <p className="text-gray-700 font-bold text-xs sm:text-sm lg:text-base">🚫 Nepracuje</p>
+                              <p className="text-gray-700 font-bold text-xs sm:text-sm lg:text-base">Nepracuje</p>
                             </div>
                           </div>
                         )
@@ -1858,7 +1960,7 @@ export default function CalendarPage() {
                             }}
                           >
                             {beforeHeight > 60 && (
-                              <p className="text-gray-700 font-bold text-[10px] sm:text-xs lg:text-sm">🔒 Zatvorené</p>
+                              <p className="text-gray-700 font-bold text-[10px] sm:text-xs lg:text-sm">Zatvorené</p>
                             )}
                           </div>
                         )
@@ -1885,7 +1987,7 @@ export default function CalendarPage() {
                             }}
                           >
                             {afterHeightPx > 60 && (
-                              <p className="text-gray-700 font-bold text-[10px] sm:text-xs lg:text-sm">🔒 Zatvorené</p>
+                              <p className="text-gray-700 font-bold text-[10px] sm:text-xs lg:text-sm">Zatvorené</p>
                             )}
                           </div>
                         )
@@ -1947,29 +2049,29 @@ export default function CalendarPage() {
                                 {r.is_private ? (
                                   // Súkromný termín
                                   <>
-                                    <p className="font-bold text-[10px] sm:text-xs lg:text-sm leading-tight truncate mb-1">🔒 Súkromný termín</p>
-                                    <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">📅 {r.reservation_date}</p>
+                                    <p className="font-bold text-[10px] sm:text-xs lg:text-sm leading-tight truncate mb-1">Súkromný termín</p>
+                                    <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">{r.reservation_date}</p>
                                     <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">
                                       ⏱️ {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
-                                    {r.notes && <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-80 truncate mt-1">💬 {r.notes}</p>}
+                                    {r.notes && <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-80 truncate mt-1">{r.notes}</p>}
                                   </>
                                 ) : (
                                   // Normálna rezervácia
                                   <>
                                     <p className="font-bold text-[10px] sm:text-xs lg:text-sm leading-tight truncate mb-1">
-                                      {canSeePersonalInfo ? `📋 ${r.services?.name}` : '🔒 Obsadené'}
+                                      {canSeePersonalInfo ? `${r.services?.name}` : 'Obsadené'}
                                     </p>
                                     {canSeePersonalInfo && (
                                       <>
-                                        <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">👤 {r.first_name} {r.last_name}</p>
-                                        <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">📞 {r.phone}</p>
+                                        <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">{r.first_name} {r.last_name}</p>
+                                        <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">{r.phone}</p>
                                       </>
                                     )}
                                     <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-90 truncate">
                                       ⏱️ {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
-                                    {canSeePersonalInfo && r.notes && <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-80 truncate mt-1">💬 {r.notes}</p>}
+                                    {canSeePersonalInfo && r.notes && <p className="text-[9px] sm:text-[10px] lg:text-xs opacity-80 truncate mt-1">{r.notes}</p>}
                                   </>
                                 )}
                               </>
@@ -1981,8 +2083,8 @@ export default function CalendarPage() {
                                 {r.is_private ? (
                                   // Súkromný termín
                                   <>
-                                    <p className="font-bold text-sm leading-tight truncate mb-1">🔒 Súkromný termín</p>
-                                    <p className="text-xs opacity-90 truncate">📅 {r.reservation_date}</p>
+                                    <p className="font-bold text-sm leading-tight truncate mb-1">Súkromný termín</p>
+                                    <p className="text-xs opacity-90 truncate">{r.reservation_date}</p>
                                     <p className="text-xs opacity-90 truncate">
                                       ⏱️ {r.reservation_time.slice(0, 5)} - {endTime}
                                     </p>
@@ -1991,12 +2093,12 @@ export default function CalendarPage() {
                                   // Normálna rezervácia
                                   <>
                                     <p className="font-bold text-sm leading-tight truncate mb-1">
-                                      {canSeePersonalInfo ? `📋 ${r.services?.name}` : '🔒 Obsadené'}
+                                      {canSeePersonalInfo ? `${r.services?.name}` : 'Obsadené'}
                                     </p>
                                     {canSeePersonalInfo && (
                                       <>
-                                        <p className="text-xs opacity-90 truncate">👤 {r.first_name} {r.last_name}</p>
-                                        <p className="text-xs opacity-90 truncate">📞 {r.phone}</p>
+                                        <p className="text-xs opacity-90 truncate">{r.first_name} {r.last_name}</p>
+                                        <p className="text-xs opacity-90 truncate">{r.phone}</p>
                                       </>
                                     )}
                                     <p className="text-xs opacity-90 truncate">
@@ -2013,7 +2115,7 @@ export default function CalendarPage() {
                                 {r.is_private ? (
                                   // Súkromný termín
                                   <>
-                                    <p className="font-bold text-[9px] sm:text-[10px] lg:text-xs leading-tight truncate">🔒 Súkromný termín</p>
+                                    <p className="font-bold text-[9px] sm:text-[10px] lg:text-xs leading-tight truncate">Súkromný termín</p>
                                     {r.notes && <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">{r.notes}</p>}
                                     <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">
                                       {r.reservation_time.slice(0, 5)} - {endTime}
@@ -2023,7 +2125,7 @@ export default function CalendarPage() {
                                   // Normálna rezervácia
                                   <>
                                     <p className="font-bold text-[9px] sm:text-[10px] lg:text-xs leading-tight truncate">
-                                      {canSeePersonalInfo ? r.services?.name : '🔒 Obsadené'}
+                                      {canSeePersonalInfo ? r.services?.name : 'Obsadené'}
                                     </p>
                                     {canSeePersonalInfo && (
                                       <p className="text-[8px] sm:text-[9px] lg:text-[10px] opacity-90 truncate">{r.first_name} {r.last_name}</p>
@@ -2040,10 +2142,10 @@ export default function CalendarPage() {
                             {height > 35 && height <= 50 && (
                               <p className="font-bold text-[8px] sm:text-[9px] lg:text-[10px] leading-tight truncate">
                                 {r.is_private 
-                                  ? `🔒 Súkromný • ${r.reservation_time.slice(0, 5)} - ${endTime}`
+                                  ? `Súkromný • ${r.reservation_time.slice(0, 5)} - ${endTime}`
                                   : canSeePersonalInfo 
                                     ? `${r.first_name} ${r.last_name} • ${r.reservation_time.slice(0, 5)} • ${r.services?.name}`
-                                    : `🔒 Obsadené • ${r.reservation_time.slice(0, 5)} - ${endTime}`
+                                    : `Obsadené • ${r.reservation_time.slice(0, 5)} - ${endTime}`
                                 }
                               </p>
                             )}
@@ -2052,10 +2154,10 @@ export default function CalendarPage() {
                             {height <= 35 && (
                               <p className="font-bold text-[7px] sm:text-[8px] lg:text-[9px] truncate">
                                 {r.is_private 
-                                  ? `🔒 ${r.reservation_time.slice(0, 5)} - ${endTime}`
+                                  ? `${r.reservation_time.slice(0, 5)} - ${endTime}`
                                   : canSeePersonalInfo 
                                     ? `${r.reservation_time.slice(0, 5)} • ${r.first_name} ${r.last_name}`
-                                    : `🔒 Obsadené • ${r.reservation_time.slice(0, 5)}`
+                                    : `Obsadené • ${r.reservation_time.slice(0, 5)}`
                                 }
                               </p>
                             )}
@@ -2071,7 +2173,7 @@ export default function CalendarPage() {
                               <button 
                                 onClick={(e) => {e.stopPropagation(); deleteRes(r.id, r)}} 
                                 className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 bg-red-600 w-4 h-4 sm:w-5 sm:h-5 rounded text-[9px] sm:text-[10px] lg:text-xs font-bold hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
-                                ✕
+                                ×
                               </button>
                             )}
                           </div>
@@ -2153,7 +2255,7 @@ export default function CalendarPage() {
                                       >
                                         {r.is_private ? (
                                           <>
-                                            <div className="font-bold truncate">🔒 Súkromný</div>
+                                            <div className="font-bold truncate">Súkromný</div>
                                             <div className="opacity-90 truncate">
                                               {r.reservation_time.slice(0, 5)} - {endTime}
                                             </div>
@@ -2168,7 +2270,7 @@ export default function CalendarPage() {
                                           </>
                                         ) : (
                                           <>
-                                            <div className="font-bold truncate">🔒 Obsadené</div>
+                                            <div className="font-bold truncate">Obsadené</div>
                                             <div className="opacity-90 truncate">
                                               {r.reservation_time.slice(0, 5)} - {endTime}
                                             </div>
@@ -2218,18 +2320,18 @@ export default function CalendarPage() {
             {height > 80 && (
               <>
                 <p className="font-bold text-sm leading-tight truncate mb-1">
-                  {canSeePersonalInfo ? `📋 ${draggedItem.services?.name}` : '🔒 Obsadené'}
+                  {canSeePersonalInfo ? `${draggedItem.services?.name}` : 'Obsadené'}
                 </p>
                 {canSeePersonalInfo && (
                   <>
-                    <p className="text-xs opacity-90 truncate">👤 {draggedItem.first_name} {draggedItem.last_name}</p>
-                    <p className="text-xs opacity-90 truncate">📞 {draggedItem.phone}</p>
+                    <p className="text-xs opacity-90 truncate">{draggedItem.first_name} {draggedItem.last_name}</p>
+                    <p className="text-xs opacity-90 truncate">{draggedItem.phone}</p>
                   </>
                 )}
                 <p className="text-xs opacity-90 truncate">
                   ⏱️ {draggedItem.reservation_time.slice(0, 5)} - {getEndTime(draggedItem.reservation_time.slice(0, 5), draggedItem.services?.duration_minutes || 30)}
                 </p>
-                {canSeePersonalInfo && draggedItem.notes && <p className="text-xs opacity-80 truncate mt-1">💬 {draggedItem.notes}</p>}
+                {canSeePersonalInfo && draggedItem.notes && <p className="text-xs opacity-80 truncate mt-1">{draggedItem.notes}</p>}
               </>
             )}
             
@@ -2237,7 +2339,7 @@ export default function CalendarPage() {
             {height > 50 && height <= 80 && (
               <>
                 <p className="font-bold text-xs leading-tight truncate">
-                  {canSeePersonalInfo ? draggedItem.services?.name : '🔒 Obsadené'}
+                  {canSeePersonalInfo ? draggedItem.services?.name : 'Obsadené'}
                 </p>
                 {canSeePersonalInfo && (
                   <p className="text-xs opacity-90 truncate">{draggedItem.first_name} {draggedItem.last_name}</p>
@@ -2253,7 +2355,7 @@ export default function CalendarPage() {
               <p className="font-bold text-xs leading-tight truncate">
                 {canSeePersonalInfo 
                   ? `${draggedItem.first_name} ${draggedItem.last_name} • ${draggedItem.reservation_time.slice(0, 5)} • ${draggedItem.services?.name}`
-                  : `🔒 Obsadené • ${draggedItem.reservation_time.slice(0, 5)} - ${getEndTime(draggedItem.reservation_time.slice(0, 5), draggedItem.services?.duration_minutes || 30)}`
+                  : `Obsadené • ${draggedItem.reservation_time.slice(0, 5)} - ${getEndTime(draggedItem.reservation_time.slice(0, 5), draggedItem.services?.duration_minutes || 30)}`
                 }
               </p>
             )}
@@ -2263,7 +2365,7 @@ export default function CalendarPage() {
               <p className="font-bold text-xs truncate">
                 {canSeePersonalInfo 
                   ? `${draggedItem.reservation_time.slice(0, 5)} • ${draggedItem.first_name} ${draggedItem.last_name}`
-                  : `🔒 Obsadené • ${draggedItem.reservation_time.slice(0, 5)}`
+                  : `Obsadené • ${draggedItem.reservation_time.slice(0, 5)}`
                 }
               </p>
             )}
@@ -2276,7 +2378,7 @@ export default function CalendarPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white text-black rounded-2xl p-8 border-4 border-gray-900 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6">
-              <div className="text-6xl mb-4">⚠️</div>
+              <div className="text-6xl mb-4">️</div>
               <h2 className="text-2xl font-bold mb-2">Potvrdiť presun?</h2>
               <p className="text-gray-700">
                 {pendingMove.isNewReservation 
@@ -2293,13 +2395,13 @@ export default function CalendarPage() {
                 onClick={cancelMove}
                 className="flex-1 px-6 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400 transition-colors"
               >
-                ❌ Zrušiť
+                Zrušiť
               </button>
               <button
                 onClick={confirmMove}
                 className="flex-1 px-6 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
               >
-                ✅ Potvrdiť
+                Potvrdiť
               </button>
             </div>
           </div>
@@ -2318,7 +2420,7 @@ export default function CalendarPage() {
           <div className="bg-white text-black rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-gray-900 max-w-lg w-full shadow-2xl"
                onClick={(e) => e.stopPropagation()}>
             <div className="text-center mb-6 sm:mb-8">
-              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">📅</div>
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6"></div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Vybrať typ eventu</h2>
               <p className="text-base sm:text-lg lg:text-xl text-gray-700">Čo chcete pridať do kalendára?</p>
             </div>
@@ -2341,7 +2443,7 @@ export default function CalendarPage() {
                   setPendingEventData(null)
                 }}
                 className="w-full py-4 sm:py-5 bg-gradient-to-br from-amber-400 via-amber-500 to-amber-600 text-white rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl hover:opacity-90 transition-all flex items-center justify-center gap-3 shadow-lg">
-                <span className="text-2xl sm:text-3xl">📅</span>
+                <span className="text-2xl sm:text-3xl"></span>
                 <span>Nová rezervácia</span>
               </button>
               
@@ -2361,7 +2463,7 @@ export default function CalendarPage() {
                   setPendingEventData(null)
                 }}
                 className="w-full py-4 sm:py-5 bg-purple-600 text-white rounded-xl sm:rounded-2xl font-bold text-lg sm:text-xl hover:bg-purple-700 transition-all flex items-center justify-center gap-3 shadow-lg">
-                <span className="text-2xl sm:text-3xl">🔒</span>
+                <span className="text-2xl sm:text-3xl"></span>
                 <span>Súkromný termín</span>
               </button>
               
@@ -2384,13 +2486,13 @@ export default function CalendarPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-3 sm:p-4">
           <div className="bg-white text-black rounded-xl sm:rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-purple-600 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-bold mb-4 sm:mb-6 flex items-center gap-2 sm:gap-3">
-              <span>🔒 {editingPrivateEvent ? 'Upraviť súkromný termín' : 'Súkromný termín'}</span>
+              <span>{editingPrivateEvent ? 'Upraviť súkromný termín' : 'Súkromný termín'}</span>
             </h2>
             
             <form onSubmit={handlePrivateSubmit} className="space-y-3 sm:space-y-4">
               {/* Základné údaje */}
               <div className="bg-purple-50 p-3 sm:p-4 rounded-lg border-2 border-purple-300">
-                <h3 className="font-bold mb-3 text-base sm:text-lg">📅 Detaily termínu</h3>
+                <h3 className="font-bold mb-3 text-base sm:text-lg">Detaily termínu</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
@@ -2478,7 +2580,7 @@ export default function CalendarPage() {
                     type="button"
                     onClick={() => {
                       showConfirmation(
-                        '🗑️ Vymazať súkromný termín?',
+                        '️ Vymazať súkromný termín?',
                         'Naozaj chcete zmazať tento súkromný termín? Táto akcia sa nedá vrátiť späť.',
                         async () => {
                           const { error } = await supabase
@@ -2487,9 +2589,9 @@ export default function CalendarPage() {
                             .eq('id', editingPrivateEvent.id)
                       
                       if (error) {
-                        showNotification('error', error.message, '❌ Chyba pri mazaní')
+                        showNotification('error', error.message, 'Chyba pri mazaní')
                       } else {
-                        showNotification('success', 'Súkromný termín bol úspešne vymazaný', '✅ Úspech')
+                        showNotification('success', 'Súkromný termín bol úspešne vymazaný', 'Úspech')
                         setShowPrivateModal(false)
                         setEditingPrivateEvent(null)
                         setPrivateForm({
@@ -2506,14 +2608,14 @@ export default function CalendarPage() {
                     }}
                     className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 transition-colors text-sm sm:text-base"
                   >
-                    🗑️ Zmazať
+                    ️ Zmazať
                   </button>
                 )}
                 <button
                   type="submit"
                   className="flex-1 px-4 sm:px-6 py-2 sm:py-3 bg-purple-600 text-white rounded-lg font-bold hover:bg-purple-700 transition-colors text-sm sm:text-base"
                 >
-                  🔒 {editingPrivateEvent ? 'Uložiť zmeny' : 'Vytvoriť termín'}
+                  {editingPrivateEvent ? 'Uložiť zmeny' : 'Vytvoriť termín'}
                 </button>
               </div>
             </form>
@@ -2526,13 +2628,13 @@ export default function CalendarPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white text-black rounded-2xl p-6 border-4 border-gray-900 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
             <h2 className="text-2xl font-bold mb-6">
-              {isCreatingNew ? '➕ Nová rezervácia' : '✏️ Upraviť rezerváciu'}
+              {isCreatingNew ? 'Nová rezervácia' : '️ Upraviť rezerváciu'}
             </h2>
             
             <form onSubmit={handleEditSubmit} className="space-y-4">
               {/* Kontaktné údaje */}
               <div className="bg-gray-50 p-4 rounded-lg border-2 border-gray-300">
-                <h3 className="font-bold mb-3 text-lg">👤 Kontaktné údaje</h3>
+                <h3 className="font-bold mb-3 text-lg">Kontaktné údaje</h3>
                 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -2642,13 +2744,21 @@ export default function CalendarPage() {
                 
                 <div>
                   <label className="block font-bold mb-2">Čas *</label>
-                  <input
-                    type="time"
+                  <select
                     value={editForm.reservation_time}
                     onChange={(e) => setEditForm({...editForm, reservation_time: e.target.value})}
                     required
                     className="w-full p-3 border-2 border-gray-900 rounded-lg font-medium"
-                  />
+                  >
+                    <option value="">-- Vyberte čas --</option>
+                    {Array.from({ length: 25 }, (_, i) => {
+                      const hour = Math.floor(i / 2) + 8
+                      const minute = (i % 2) * 30
+                      if (hour >= 20) return null
+                      const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+                      return <option key={timeStr} value={timeStr}>{timeStr}</option>
+                    })}
+                  </select>
                 </div>
               </div>
               
@@ -2667,13 +2777,13 @@ export default function CalendarPage() {
                 <button
                   type="submit"
                   className="flex-1 px-8 py-3 bg-black text-white rounded-lg font-bold hover:bg-gray-800">
-                  💾 Uložiť zmeny
+                  Uložiť zmeny
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowEditModal(false)}
                   className="px-8 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400">
-                  ✕ Zrušiť
+                  Zrušiť
                 </button>
               </div>
             </form>
@@ -2686,7 +2796,7 @@ export default function CalendarPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto border-4 border-gray-900">
             <h2 className="text-2xl font-bold mb-6 text-black">
-              ⏰ Zmena pracovnej doby - {selectedEmployeeForHours?.full_name}
+              Zmena pracovnej doby - {selectedEmployeeForHours?.full_name}
             </h2>
             <p className="text-gray-600 mb-6">
               Dátum: {selectedDate.toLocaleDateString('sk-SK', { day: 'numeric', month: 'long', year: 'numeric' })}
@@ -2694,7 +2804,7 @@ export default function CalendarPage() {
             
             <div className="space-y-6">
               <div className="border-2 border-gray-900 rounded-lg p-6 bg-white">
-                <h3 className="font-bold text-lg mb-3 text-black">📋 Možnosti:</h3>
+                <h3 className="font-bold text-lg mb-3 text-black">Možnosti:</h3>
                 
                 <button
                   onClick={() => router.push('/working-hours')}
@@ -2702,7 +2812,7 @@ export default function CalendarPage() {
                 >
                   <div className="flex items-center justify-between">
                     <div>
-                      <div className="text-lg">🔧 Zmeniť pravidelnú pracovnú dobu</div>
+                      <div className="text-lg">Zmeniť pravidelnú pracovnú dobu</div>
                       <div className="text-sm opacity-90 mt-1">
                         Upraví pracovné hodiny pre všetky dni v týždni
                       </div>
@@ -2714,7 +2824,7 @@ export default function CalendarPage() {
                 <div className="border-t-2 border-gray-300 my-4"></div>
                 
                 <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
-                  <h4 className="font-bold text-lg mb-3 text-black">📅 Zmeniť len pre tento deň:</h4>
+                  <h4 className="font-bold text-lg mb-3 text-black">Zmeniť len pre tento deň:</h4>
                   
                   <div className="mb-4">
                     <label className="flex items-center gap-3 p-3 bg-white rounded-lg border-2 border-gray-300 cursor-pointer hover:bg-gray-50">
@@ -2729,7 +2839,7 @@ export default function CalendarPage() {
                         })}
                         className="w-5 h-5"
                       />
-                      <span className="font-bold text-black">🚫 Zamestnankyňa nepracuje tento deň</span>
+                      <span className="font-bold text-black">Zamestnankyňa nepracuje tento deň</span>
                     </label>
                   </div>
                   
@@ -2767,7 +2877,7 @@ export default function CalendarPage() {
                     onClick={handleSaveSpecificDayHours}
                     className="w-full mt-4 px-8 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-colors"
                   >
-                    💾 Uložiť pre tento deň
+                    Uložiť pre tento deň
                   </button>
                 </div>
               </div>
@@ -2784,7 +2894,7 @@ export default function CalendarPage() {
                 }}
                 className="w-full px-8 py-3 bg-gray-300 text-black rounded-lg font-bold hover:bg-gray-400"
               >
-                ✕ Zavrieť
+                Zavrieť
               </button>
             </div>
           </div>
@@ -2802,7 +2912,7 @@ export default function CalendarPage() {
           <div className="bg-gradient-to-br from-gray-900 via-amber-900 to-gray-900 text-white rounded-2xl sm:rounded-3xl p-4 sm:p-8 lg:p-12 border-4 border-amber-500/50 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
                onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8">
-              <span className="text-3xl sm:text-4xl lg:text-5xl">📅</span>
+              <span className="text-3xl sm:text-4xl lg:text-5xl"></span>
               <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold">Nová rezervácia</h2>
             </div>
             
@@ -2823,6 +2933,30 @@ export default function CalendarPage() {
               const service = services.find(s => s.id === bookingData.service_id)
               if (!service) {
                 showNotification('error', 'Služba nebola nájdená')
+                return
+              }
+
+              // Validácia pracovných hodín
+              const startMinutes = timeToMinutes(bookingData.start_time)
+              const duration = service.duration_minutes
+              const hoursCheck = checkWorkingHoursDetailed(bookingData.employee_id, startMinutes, duration)
+              
+              if (!hoursCheck.isValid) {
+                if (hoursCheck.reason === 'on_vacation') {
+                  showNotification('error', 'Zamestnankyňa má dovolenku v tento deň', '️ Dovolenka')
+                } else if (hoursCheck.reason === 'special_day_closed') {
+                  showNotification('error', 'Kaderníctvo je v tento deň zatvorené', 'Sviatky')
+                } else if (hoursCheck.reason === 'not_working') {
+                  showNotification('error', 'Zamestnankyňa nepracuje v tento deň', 'Nepracovný deň')
+                } else {
+                  showNotification('error', `Pracovné hodiny sú ${hoursCheck.hours?.start} - ${hoursCheck.hours?.end}`, 'Mimo pracovných hodín')
+                }
+                return
+              }
+              
+              // Kontrola kolízií
+              if (hasCollision(bookingData.employee_id, startMinutes, duration)) {
+                showNotification('error', 'V tomto čase už je obsadený termín', '️ Čas obsadený')
                 return
               }
 
@@ -2850,7 +2984,7 @@ export default function CalendarPage() {
 
                 if (error) throw error
 
-                showNotification('success', 'Rezervácia bola úspešne vytvorená', '✅ Úspech')
+                showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
                 setShowBookingModal(false)
                 setBookingData({
                   service_id: '',
@@ -2869,7 +3003,7 @@ export default function CalendarPage() {
             }} className="space-y-3 sm:space-y-4">
               {/* Údaje zákazníka */}
               <div className="bg-amber-50/10 p-3 sm:p-4 rounded-lg border-2 border-amber-500/30">
-                <h3 className="font-bold mb-3 text-base sm:text-lg">👤 Údaje zákazníka</h3>
+                <h3 className="font-bold mb-3 text-base sm:text-lg">Údaje zákazníka</h3>
                 
                 <div className="space-y-3">
                   <div>
@@ -2913,7 +3047,7 @@ export default function CalendarPage() {
 
               {/* Detaily rezervácie */}
               <div className="bg-amber-50/10 p-3 sm:p-4 rounded-lg border-2 border-amber-500/30">
-                <h3 className="font-bold mb-3 text-base sm:text-lg">📅 Detaily rezervácie</h3>
+                <h3 className="font-bold mb-3 text-base sm:text-lg">Detaily rezervácie</h3>
                 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div>
@@ -2963,13 +3097,21 @@ export default function CalendarPage() {
                   
                   <div>
                     <label className="block font-bold mb-2 text-sm sm:text-base">Čas *</label>
-                    <input
-                      type="time"
+                    <select
                       value={bookingData.start_time}
                       onChange={(e) => setBookingData({...bookingData, start_time: e.target.value})}
                       required
                       className="w-full px-3 py-2 sm:p-3 border-2 border-gray-300 rounded-lg text-black font-medium text-sm sm:text-base"
-                    />
+                    >
+                      <option value="">-- Vyberte čas --</option>
+                      {Array.from({ length: 25 }, (_, i) => {
+                        const hour = Math.floor(i / 2) + 8
+                        const minute = (i % 2) * 30
+                        if (hour >= 20) return null
+                        const timeStr = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
+                        return <option key={timeStr} value={timeStr}>{timeStr}</option>
+                      })}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -2997,7 +3139,7 @@ export default function CalendarPage() {
                   type="submit"
                   className="flex-1 px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 text-sm sm:text-base shadow-lg"
                 >
-                  ✅ Vytvoriť rezerváciu
+                  Vytvoriť rezerváciu
                 </button>
               </div>
             </form>
@@ -3010,7 +3152,7 @@ export default function CalendarPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6 sm:mb-8">
-              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">️</div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
               <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
             </div>

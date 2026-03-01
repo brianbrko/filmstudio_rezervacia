@@ -1,4 +1,4 @@
-// @ts-nocheck
+﻿// @ts-nocheck
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -10,7 +10,7 @@ export default function WorkingHoursPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'default' | 'employees' | 'special'>('default')
+  const [activeTab, setActiveTab] = useState<'default' | 'employees' | 'special' | 'vacations'>('default')
   
   // Default otváracie hodiny
   const [defaultHours, setDefaultHours] = useState<any[]>([])
@@ -29,6 +29,16 @@ export default function WorkingHoursPage() {
     start_time: '08:00',
     end_time: '18:00',
     is_closed: false,
+    note: ''
+  })
+
+  // Dovolenky
+  const [vacations, setVacations] = useState<any[]>([])
+  const [showAddVacation, setShowAddVacation] = useState(false)
+  const [vacationForm, setVacationForm] = useState({
+    employee_id: '',
+    start_date: '',
+    end_date: '',
     note: ''
   })
 
@@ -155,6 +165,13 @@ export default function WorkingHoursPage() {
       .order('date')
     setSpecialDays(specialData || [])
 
+    // Načítaj dovolenky
+    const { data: vacationsData } = await supabase
+      .from('employee_vacations')
+      .select('*, employees(name)')
+      .order('start_date', { ascending: false })
+    setVacations(vacationsData || [])
+
     setLoading(false)
   }
 
@@ -273,6 +290,59 @@ export default function WorkingHoursPage() {
     )
   }
 
+  const addVacation = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!vacationForm.employee_id || !vacationForm.start_date || !vacationForm.end_date) {
+      showNotification('error', 'Prosím vyplňte všetky povinné polia', 'Chyba')
+      return
+    }
+
+    // Kontrola, či end_date nie je pred start_date
+    if (vacationForm.end_date < vacationForm.start_date) {
+      showNotification('error', 'Koniec dovolenky nemôže byť pred začiatkom', 'Chyba')
+      return
+    }
+
+    const { error } = await supabase
+      .from('employee_vacations')
+      .insert([vacationForm])
+
+    if (error) {
+      showNotification('error', 'Chyba: ' + error.message, 'Chyba')
+    } else {
+      showNotification('success', 'Dovolenka bola pridaná', 'Úspech')
+      setShowAddVacation(false)
+      setVacationForm({
+        employee_id: '',
+        start_date: '',
+        end_date: '',
+        note: ''
+      })
+      await fetchAllData()
+    }
+  }
+
+  const deleteVacation = async (id: string) => {
+    showConfirmation(
+      'Zmazať dovolenku?',
+      'Naozaj zmazať túto dovolenku?',
+      async () => {
+        const { error } = await supabase
+          .from('employee_vacations')
+          .delete()
+          .eq('id', id)
+
+        if (error) {
+          showNotification('error', 'Chyba: ' + error.message, 'Chyba')
+        } else {
+          showNotification('success', 'Dovolenka bola zmazaná', 'Úspech')
+          await fetchAllData()
+        }
+      }
+    )
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 flex items-center justify-center">
@@ -295,10 +365,10 @@ export default function WorkingHoursPage() {
         } text-white px-4 sm:px-6 py-3 sm:py-4 rounded-lg shadow-2xl border-2 border-white animate-slide-in-right max-w-[90vw] sm:max-w-md`}>
           <div className="flex items-start gap-2 sm:gap-3">
             <span className="text-xl sm:text-2xl">
-              {notification.type === 'error' ? '❌' :
-               notification.type === 'success' ? '✅' :
-               notification.type === 'warning' ? '⚠️' :
-               'ℹ️'}
+              {notification.type === 'error' ? '' :
+               notification.type === 'success' ? '' :
+               notification.type === 'warning' ? '️' :
+               ''}
             </span>
             <div className="flex-1">
               {notification.title && (
@@ -342,7 +412,7 @@ export default function WorkingHoursPage() {
         <div className="max-w-[1400px] mx-auto">
           <div className="flex justify-between items-center">
             <div>
-              <h1 className="text-xl sm:text-3xl font-bold">⏰ Správa pracovných hodín</h1>
+              <h1 className="text-xl sm:text-3xl font-bold">Správa pracovných hodín</h1>
               <p className="text-gray-300 text-sm sm:text-base">Admin panel - {profile?.full_name}</p>
             </div>
             
@@ -351,31 +421,31 @@ export default function WorkingHoursPage() {
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 text-2xl hover:bg-gray-700 rounded-lg text-white"
             >
-              {isMobileMenuOpen ? '✕' : '☰'}
+              {isMobileMenuOpen ? '' : ''}
             </button>
             
             {/* Desktop menu - hidden on mobile */}
             <div className="hidden lg:flex gap-4">
               <button onClick={() => router.push('/calendar')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => router.push('/services')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ⚙️ Služby
+                  ️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => router.push('/statistics')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => router.push('/users')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => router.push('/profile')} className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => setShowLogoutModal(true)} className="px-6 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600">
                 Odhlásiť
@@ -393,25 +463,25 @@ export default function WorkingHoursPage() {
           >
             <div className="mt-4 space-y-2 pb-2">
               <button onClick={() => {router.push('/calendar'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                📅 Kalendár
+                Kalendár
               </button>
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.services)) && (
                 <button onClick={() => {router.push('/services'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  ⚙️ Služby
+                  ️ Služby
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.statistics)) && (
                 <button onClick={() => {router.push('/statistics'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  📊 Štatistiky
+                  Štatistiky
                 </button>
               )}
               {(profile?.role === 'admin' || (profile?.role === 'employee' && profile?.permissions?.users)) && (
                 <button onClick={() => {router.push('/users'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                  👥 Používatelia
+                  Používatelia
                 </button>
               )}
               <button onClick={() => {router.push('/profile'); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-left">
-                👤 Profil
+                Profil
               </button>
               <button onClick={() => {setShowLogoutModal(true); setIsMobileMenuOpen(false)}} className="w-full px-4 py-3 bg-gray-700 text-white rounded-lg font-bold border-2 border-amber-500/50 hover:bg-gray-600 text-left">
                 Odhlásiť
@@ -426,7 +496,7 @@ export default function WorkingHoursPage() {
         {/* Read-only upozornenie pre zamestnancov */}
         {profile?.role === 'employee' && (
           <div className="bg-blue-100 border-l-4 border-blue-600 text-blue-800 p-4 mb-6 rounded">
-            <p className="font-bold">👁️ Režim len na čítanie</p>
+            <p className="font-bold">️ Režim len na čítanie</p>
             <p className="text-sm">Môžete prezerať pracovné hodiny, ale nemôžete ich meniť.</p>
           </div>
         )}
@@ -435,17 +505,22 @@ export default function WorkingHoursPage() {
           <button
             onClick={() => setActiveTab('default')}
             className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'default' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
-            🏪 Otváracie hodiny
+            Otváracie hodiny
           </button>
           <button
             onClick={() => setActiveTab('employees')}
             className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'employees' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
-            👥 Pracovné hodiny zamestnankyň
+            Pracovné hodiny zamestnankyň
           </button>
           <button
             onClick={() => setActiveTab('special')}
             className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'special' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
-            📆 Špeciálne dni
+            Špeciálne dni
+          </button>
+          <button
+            onClick={() => setActiveTab('vacations')}
+            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'vacations' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
+            ️ Dovolenky
           </button>
         </div>
 
@@ -462,7 +537,7 @@ export default function WorkingHoursPage() {
                   onClick={saveDefaultHours}
                   className="px-8 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg transition-colors flex items-center gap-2"
                 >
-                  💾 Uložiť zmeny
+                  Uložiť zmeny
                 </button>
               )}
             </div>
@@ -578,7 +653,7 @@ export default function WorkingHoursPage() {
                 <button
                   onClick={() => setShowAddSpecial(true)}
                   className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
-                  ➕ Pridať špeciálny deň
+                  Pridať špeciálny deň
                 </button>
               )}
             </div>
@@ -662,7 +737,7 @@ export default function WorkingHoursPage() {
                   <div>
                     <p className="font-bold">{new Date(day.date).toLocaleDateString('sk-SK')}</p>
                     {day.is_closed ? (
-                      <p className="text-red-400 font-bold">🚫 Zatvorené</p>
+                      <p className="text-red-400 font-bold">Zatvorené</p>
                     ) : (
                       <p className="text-gray-300">{day.start_time} - {day.end_time}</p>
                     )}
@@ -672,11 +747,121 @@ export default function WorkingHoursPage() {
                     <button
                       onClick={() => deleteSpecialDay(day.id)}
                       className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700">
-                      🗑️ Zmazať
+                      ️ Zmazať
                     </button>
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* Vacations */}
+        {activeTab === 'vacations' && (
+          <div className="bg-gray-800 text-white rounded-2xl p-8 border-4 border-amber-500/30">
+            <div className="flex justify-between items-center mb-6">
+              <div>
+                <h2 className="text-2xl font-bold">Dovolenky zamestnankýň</h2>
+                <p className="text-gray-300">Správa dovoleniek - počas dovolenky nie je možné rezervovať termín</p>
+              </div>
+              {profile?.role === 'admin' && (
+                <button
+                  onClick={() => setShowAddVacation(true)}
+                  className="px-6 py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg">
+                  Pridať dovolenku
+                </button>
+              )}
+            </div>
+
+            {/* Add vacation form */}
+            {showAddVacation && (
+              <form onSubmit={addVacation} className="mb-6 p-4 sm:p-6 bg-gray-700 rounded-lg border-2 border-amber-500/30">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div className="sm:col-span-2">
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Zamestnankyna *</label>
+                    <select
+                      value={vacationForm.employee_id}
+                      onChange={(e) => setVacationForm({...vacationForm, employee_id: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white">
+                      <option value="">Vyberte zamestnankyňu</option>
+                      {employees.map(emp => (
+                        <option key={emp.id} value={emp.id}>{emp.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Začiatok dovolenky *</label>
+                    <input
+                      type="date"
+                      value={vacationForm.start_date}
+                      onChange={(e) => setVacationForm({...vacationForm, start_date: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Koniec dovolenky *</label>
+                    <input
+                      type="date"
+                      value={vacationForm.end_date}
+                      onChange={(e) => setVacationForm({...vacationForm, end_date: e.target.value})}
+                      required
+                      className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-3 sm:mt-4">
+                  <label className="block font-bold mb-2 text-sm sm:text-base">Poznámka</label>
+                  <input
+                    type="text"
+                    value={vacationForm.note}
+                    onChange={(e) => setVacationForm({...vacationForm, note: e.target.value})}
+                    placeholder="Napr. Letná dovolenka"
+                    className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mt-3 sm:mt-4">
+                  <button type="submit" className="px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white rounded-lg font-bold hover:from-amber-500 hover:to-amber-700 shadow-lg text-sm sm:text-base">
+                    Uložiť
+                  </button>
+                  <button type="button" onClick={() => setShowAddVacation(false)} className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-600 text-white rounded-lg font-bold hover:bg-gray-500 border-2 border-amber-500/30 text-sm sm:text-base">
+                    Zrušiť
+                  </button>
+                </div>
+              </form>
+            )}
+
+            {/* List of vacations */}
+            <div className="space-y-3">
+              {vacations.length === 0 ? (
+                <div className="text-center text-gray-400 py-8">
+                  <p className="text-lg">Žiadne dovolenky zatiaľ nie sú naplánované</p>
+                </div>
+              ) : (
+                vacations.map(vacation => (
+                  <div key={vacation.id} className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-4 bg-gray-700 rounded-lg border-2 border-amber-500/30 gap-3">
+                    <div className="flex-1">
+                      <p className="font-bold text-lg">{vacation.employees?.name}</p>
+                      <p className="text-gray-300">
+                        ️ {new Date(vacation.start_date).toLocaleDateString('sk-SK')} - {new Date(vacation.end_date).toLocaleDateString('sk-SK')}
+                      </p>
+                      {vacation.note && <p className="text-sm text-gray-400 mt-1">{vacation.note}</p>}
+                    </div>
+                    {profile?.role === 'admin' && (
+                      <button
+                        onClick={() => deleteVacation(vacation.id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-lg font-bold hover:bg-red-700 text-sm sm:text-base whitespace-nowrap">
+                        ️ Zmazať
+                      </button>
+                    )}
+                  </div>
+                ))
+              )}
             </div>
           </div>
         )}
@@ -687,7 +872,7 @@ export default function WorkingHoursPage() {
         <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4">
           <div className="bg-gray-900 text-white rounded-2xl sm:rounded-3xl p-6 sm:p-10 lg:p-12 border-4 border-amber-500/50 max-w-md w-full shadow-2xl">
             <div className="text-center mb-6 sm:mb-8">
-              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">⚠️</div>
+              <div className="text-4xl sm:text-5xl lg:text-6xl mb-4 sm:mb-6">️</div>
               <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-3 sm:mb-4">Odhlásiť sa?</h2>
               <p className="text-base sm:text-lg lg:text-xl text-gray-300">Naozaj sa chcete odhlásiť?</p>
             </div>
