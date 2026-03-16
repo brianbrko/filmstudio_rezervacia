@@ -10,16 +10,14 @@ export default function WorkingHoursPage() {
   const [user, setUser] = useState<any>(null)
   const [profile, setProfile] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const [activeTab, setActiveTab] = useState<'default' | 'employees' | 'special' | 'vacations'>('default')
+  const [activeTab, setActiveTab] = useState<'default' | 'special' | 'vacations'>('default')
   
   // Default otváracie hodiny
   const [defaultHours, setDefaultHours] = useState<any[]>([])
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
   
-  // Zamestnankyne a ich hodiny
+  // Zamestnankyne (pre dovolenky)
   const [employees, setEmployees] = useState<any[]>([])
-  const [employeeHours, setEmployeeHours] = useState<any[]>([])
-  const [selectedEmployee, setSelectedEmployee] = useState<string>('')
   
   // Špeciálne dni
   const [specialDays, setSpecialDays] = useState<any[]>([])
@@ -147,17 +145,6 @@ export default function WorkingHoursPage() {
       .eq('is_active', true)
       .order('name')
     setEmployees(empData || [])
-    if (empData && empData.length > 0 && !selectedEmployee) {
-      setSelectedEmployee(empData[0].id)
-    }
-
-    // Načítaj hodiny zamestnankýň
-    const { data: empHoursData } = await supabase
-      .from('employee_working_hours')
-      .select('*')
-      .order('day_of_week')
-    setEmployeeHours(empHoursData || [])
-
     // Načítaj špeciálne dni
     const { data: specialData } = await supabase
       .from('special_days')
@@ -202,51 +189,6 @@ export default function WorkingHoursPage() {
     
     setHasUnsavedChanges(false)
     showNotification('success', 'Zmeny uložené!', 'Úspech')
-  }
-
-  const updateEmployeeHours = async (dayOfWeek: number, field: string, value: any) => {
-    if (!selectedEmployee) return
-
-    const hour = employeeHours.find(h => h.employee_id === selectedEmployee && h.day_of_week === dayOfWeek)
-
-    if (hour) {
-      // Optimisticky update state
-      const updatedHours = employeeHours.map(h =>
-        h.employee_id === selectedEmployee && h.day_of_week === dayOfWeek
-          ? { ...h, [field]: value }
-          : h
-      )
-      setEmployeeHours(updatedHours)
-
-      // Update existing
-      const { error } = await supabase
-        .from('employee_working_hours')
-        .update({ [field]: value })
-        .eq('id', hour.id)
-
-      if (error) {
-        showNotification('error', 'Chyba: ' + error.message, 'Chyba')
-        await fetchAllData()
-      }
-    } else {
-      // Create new
-      const { error } = await supabase
-        .from('employee_working_hours')
-        .insert([{
-          employee_id: selectedEmployee,
-          day_of_week: dayOfWeek,
-          start_time: '08:00',
-          end_time: '18:00',
-          is_working: true,
-          [field]: value
-        }])
-
-      if (error) {
-        showNotification('error', 'Chyba: ' + error.message, 'Chyba')
-      } else {
-        await fetchAllData()
-      }
-    }
   }
 
   const addSpecialDay = async (e: React.FormEvent) => {
@@ -350,8 +292,6 @@ export default function WorkingHoursPage() {
       </div>
     )
   }
-
-  const selectedEmpHours = employeeHours.filter(h => h.employee_id === selectedEmployee)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white">
@@ -508,11 +448,6 @@ export default function WorkingHoursPage() {
             Otváracie hodiny
           </button>
           <button
-            onClick={() => setActiveTab('employees')}
-            className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'employees' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
-            Pracovné hodiny zamestnankyň
-          </button>
-          <button
             onClick={() => setActiveTab('special')}
             className={`flex-1 min-w-[140px] sm:flex-none px-4 sm:px-6 py-2 sm:py-3 rounded-lg font-bold text-sm sm:text-base ${activeTab === 'special' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white shadow-lg' : 'bg-gray-700 text-white hover:bg-gray-600'}`}>
             Špeciálne dni
@@ -569,71 +504,6 @@ export default function WorkingHoursPage() {
                         className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
                       />
                     </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* Employee hours */}
-        {activeTab === 'employees' && (
-          <div className="bg-gray-800 text-white rounded-2xl p-8 border-4 border-amber-500/30">
-            <h2 className="text-2xl font-bold mb-6">Pracovné hodiny zamestnankýň</h2>
-            
-            {/* Select employee */}
-            <div className="mb-4 sm:mb-6">
-              <label className="block font-bold mb-2 text-sm sm:text-base">Vyberte zamestnankyu:</label>
-              <select
-                value={selectedEmployee}
-                onChange={(e) => setSelectedEmployee(e.target.value)}
-                className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg font-medium text-sm sm:text-base bg-gray-700 text-white">
-                {employees.map(emp => (
-                  <option key={emp.id} value={emp.id}>{emp.name} - {emp.position}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Hours */}
-            <div className="space-y-4">
-              {dayNames.map((day, index) => {
-                const hour = selectedEmpHours.find(h => h.day_of_week === index)
-                const defaultHour = defaultHours.find(h => h.day_of_week === index)
-
-                return (
-                  <div key={index} className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 p-3 sm:p-4 bg-gray-700 rounded-lg border-2 border-amber-500/30">
-                    <div className="w-full sm:w-32 font-bold text-sm sm:text-base">{day}</div>
-                    
-                    <label className="flex items-center gap-2 cursor-pointer text-sm sm:text-base">
-                      <input
-                        type="checkbox"
-                        checked={hour?.is_working ?? defaultHour?.is_open ?? true}
-                        onChange={(e) => updateEmployeeHours(index, 'is_working', e.target.checked)}
-                        disabled={profile?.role === 'employee'}
-                        className="w-4 h-4 sm:w-5 sm:h-5 cursor-pointer disabled:cursor-not-allowed disabled:opacity-50"
-                      />
-                      <span>Pracuje</span>
-                    </label>
-
-                    {(hour?.is_working ?? defaultHour?.is_open ?? true) && (
-                      <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
-                        <input
-                          type="time"
-                          value={hour?.start_time || defaultHour?.start_time || '08:00'}
-                          onChange={(e) => updateEmployeeHours(index, 'start_time', e.target.value)}
-                          disabled={profile?.role === 'employee'}
-                          className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
-                        />
-                        <span className="text-xs sm:text-sm">-</span>
-                        <input
-                          type="time"
-                          value={hour?.end_time || defaultHour?.end_time || '18:00'}
-                          onChange={(e) => updateEmployeeHours(index, 'end_time', e.target.value)}
-                          disabled={profile?.role === 'employee'}
-                          className="px-2 py-1 sm:p-2 border-2 border-amber-500/30 rounded font-medium disabled:bg-gray-600 disabled:cursor-not-allowed text-sm sm:text-base bg-gray-900 text-white"
-                        />
-                      </div>
-                    )}
                   </div>
                 )
               })}
@@ -761,7 +631,7 @@ export default function WorkingHoursPage() {
           <div className="bg-gray-800 text-white rounded-2xl p-8 border-4 border-amber-500/30">
             <div className="flex justify-between items-center mb-6">
               <div>
-                <h2 className="text-2xl font-bold">Dovolenky zamestnankýň</h2>
+                <h2 className="text-2xl font-bold">Dovolenky ateliéra</h2>
                 <p className="text-gray-300">Správa dovoleniek - počas dovolenky nie je možné rezervovať termín</p>
               </div>
               {profile?.role === 'admin' && (
@@ -778,13 +648,13 @@ export default function WorkingHoursPage() {
               <form onSubmit={addVacation} className="mb-6 p-4 sm:p-6 bg-gray-700 rounded-lg border-2 border-amber-500/30">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                   <div className="sm:col-span-2">
-                    <label className="block font-bold mb-2 text-sm sm:text-base">Zamestnankyna *</label>
+                    <label className="block font-bold mb-2 text-sm sm:text-base">Ateliér *</label>
                     <select
                       value={vacationForm.employee_id}
                       onChange={(e) => setVacationForm({...vacationForm, employee_id: e.target.value})}
                       required
                       className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/30 rounded-lg text-sm sm:text-base bg-gray-900 text-white">
-                      <option value="">Vyberte zamestnankyňu</option>
+                      <option value="">Vyberte ateliér</option>
                       {employees.map(emp => (
                         <option key={emp.id} value={emp.id}>{emp.name}</option>
                       ))}

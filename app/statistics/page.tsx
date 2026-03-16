@@ -4,17 +4,9 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 
-interface EmployeeStats {
-  id: string
-  name: string
-  position: string
-  total_reservations: number
-}
-
 export default function StatisticsPage() {
   const [loading, setLoading] = useState(true)
   const [profile, setProfile] = useState<any>(null)
-  const [stats, setStats] = useState<EmployeeStats[]>([])
   const [totalReservations, setTotalReservations] = useState(0)
   const [selectedMonth, setSelectedMonth] = useState<string>('all') // 'all' alebo 'YYYY-MM'
   const router = useRouter()
@@ -75,13 +67,6 @@ export default function StatisticsPage() {
   const fetchStatistics = async () => {
     setLoading(true)
 
-    // Načítaj všetky zamestnankyňe
-    const { data: employees } = await supabase
-      .from('employees')
-      .select('*')
-      .eq('is_active', true)
-      .order('name')
-
     // Načítaj rezervácie s filtrom podľa mesiaca
     let query = supabase.from('reservations').select('employee_id, reservation_date')
     
@@ -98,23 +83,11 @@ export default function StatisticsPage() {
     
     const { data: reservations } = await query
 
-    if (!employees || !reservations) {
+    if (!reservations) {
       setLoading(false)
       return
     }
 
-    // Spočítaj rezervácie pre každú zamestnankyňu
-    const employeeStats: EmployeeStats[] = employees.map(emp => {
-      const count = reservations.filter(r => r.employee_id === emp.id).length
-      return {
-        id: emp.id,
-        name: emp.name,
-        position: emp.position || 'Stylistka',
-        total_reservations: count
-      }
-    })
-
-    setStats(employeeStats)
     setTotalReservations(reservations.length)
     setLoading(false)
   }
@@ -284,41 +257,6 @@ export default function StatisticsPage() {
           </div>
         </div>
 
-        {/* Štatistiky pre jednotlivé zamestnankyňe */}
-        <h2 className="text-xl sm:text-2xl font-bold text-white mb-3 sm:mb-4">Rezervácie podľa zamestnankýň</h2>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          {stats.map((employee) => (
-            <div 
-              key={employee.id}
-              className="bg-gray-800 text-white rounded-2xl p-4 sm:p-6 border-2 sm:border-4 border-amber-500/30"
-            >
-              <div className="text-center">
-                <h3 className="text-lg sm:text-xl font-bold mb-1">{employee.name}</h3>
-                <p className="text-xs sm:text-sm text-gray-300 mb-3 sm:mb-4">{employee.position}</p>
-                
-                <div className="bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-xl p-4 sm:p-6 mb-3 sm:mb-4">
-                  <p className="text-3xl sm:text-4xl font-bold">{employee.total_reservations}</p>
-                  <p className="text-xs sm:text-sm opacity-90">rezervácií</p>
-                </div>
-
-                <div className="text-xs sm:text-sm text-gray-300">
-                  <p>
-                    {totalReservations > 0 
-                      ? `${((employee.total_reservations / totalReservations) * 100).toFixed(1)}% z celku`
-                      : '0% z celku'
-                    }
-                  </p>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {stats.length === 0 && (
-          <div className="bg-gray-800 text-white rounded-2xl p-8 sm:p-12 border-2 sm:border-4 border-amber-500/30 text-center">
-            <p className="text-lg sm:text-xl text-gray-300">Žiadne štatistiky</p>
-          </div>
-        )}
       </div>
 
       {/* Logout Confirmation Modal */}

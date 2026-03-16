@@ -42,7 +42,7 @@ ALTER TABLE reservations DISABLE ROW LEVEL SECURITY;
 
 6. Vytvorte `.env.local` súbor s Supabase credentials:
 ```env
-NEXT_PUBLIC_SUPABASE_URL=your-project-url.supabase.co
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ```
 

@@ -469,7 +469,7 @@ export default function DashboardPage() {
       let title = 'Termín nie je dostupný'
       
       if (workingHoursResult.reason === 'on_vacation') {
-        message = `${selectedSlot.employee_name} má v tento deň dovolenku. Prosím vyberte iný termín alebo inú zamestnankyňu.`
+        message = `${selectedSlot.employee_name} má v tento deň dovolenku. Prosím vyberte iný termín alebo iný ateliér.`
         title = 'Dovolenka'
       } else if (workingHoursResult.reason === 'special_day_closed') {
         message = 'Kaderníctvo je v tento deň zatvorené (sviatky).'
@@ -572,7 +572,7 @@ export default function DashboardPage() {
       {/* Animated wave background */}
       <div className="absolute inset-0 z-0">
         <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '40%'}}>
-          <path fill="#f59e0b" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+          <path fill="#9A83DC" fillOpacity="0.3" d="M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
             <animate attributeName="d" dur="10s" repeatCount="indefinite" values="
               M0,96L48,112C96,128,192,160,288,165.3C384,171,480,149,576,133.3C672,117,768,107,864,122.7C960,139,1056,181,1152,181.3C1248,181,1344,139,1392,117.3L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
               M0,128L48,133.3C96,139,192,149,288,138.7C384,128,480,96,576,90.7C672,85,768,107,864,128C960,149,1056,171,1152,170.7C1248,171,1344,149,1392,138.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
@@ -581,7 +581,7 @@ export default function DashboardPage() {
           </path>
         </svg>
         <svg className="absolute bottom-0 w-full" viewBox="0 0 1440 320" preserveAspectRatio="none" style={{height: '35%'}}>
-          <path fill="#f59e0b" fillOpacity="0.15" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+          <path fill="#c4b2ea" fillOpacity="0.15" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
             <animate attributeName="d" dur="15s" repeatCount="indefinite" values="
               M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,208C960,192,1056,160,1152,154.7C1248,149,1344,171,1392,181.3L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
               M0,192L48,197.3C96,203,192,213,288,208C384,203,480,181,576,181.3C672,181,768,203,864,218.7C960,235,1056,245,1152,240C1248,235,1344,213,1392,202.7L1440,192L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
@@ -627,9 +627,9 @@ export default function DashboardPage() {
             <Image 
               src="/images/logo.png" 
               alt="Art Studio Logo" 
-              width={80} 
-              height={80}
-              className="object-contain w-16 h-16 sm:w-20 sm:h-20"
+              width={96} 
+              height={96}
+              className="object-contain w-20 h-20 sm:w-24 sm:h-24"
             />
             <div>
               <p className="text-gray-300 text-base sm:text-lg">{profile?.full_name}</p>
@@ -807,11 +807,20 @@ export default function DashboardPage() {
                   }}
                   className="w-full px-3 py-2 sm:p-3 border-2 border-amber-500/50 rounded-lg font-medium bg-gray-900 hover:bg-gray-700 cursor-pointer transition-colors flex justify-between items-center text-sm sm:text-base"
                 >
-                  <span className={selectedService ? 'text-white' : 'text-gray-400'}>
-                    {selectedService 
-                      ? services.find(s => s.id === selectedService)?.name + ` - ${services.find(s => s.id === selectedService)?.price}€`
-                      : '-- Vyberte službu --'}
-                  </span>
+                    <div className="min-w-0">
+                      {selectedService ? (
+                        <>
+                          <p className="text-white font-bold truncate">
+                            {services.find(s => s.id === selectedService)?.name} - {services.find(s => s.id === selectedService)?.price}€
+                          </p>
+                          <p className="text-xs sm:text-sm text-gray-300 truncate">
+                            {services.find(s => s.id === selectedService)?.description || 'Bez popisu'}
+                          </p>
+                        </>
+                      ) : (
+                        <span className="text-gray-400">-- Vyberte službu --</span>
+                      )}
+                    </div>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
                   </svg>
@@ -842,6 +851,9 @@ export default function DashboardPage() {
                         }`}
                       >
                         <p className="font-bold text-sm sm:text-base">{service.name}</p>
+                        <p className={`text-xs sm:text-sm ${selectedService === service.id ? 'text-white/85' : 'text-gray-300'}`}>
+                          {service.description || 'Bez popisu'}
+                        </p>
                         <p className={`text-xs sm:text-sm ${selectedService === service.id ? 'text-white/80' : 'text-gray-400'}`}>od {service.price}€ • {service.duration_minutes} min</p>
                       </div>
                     ))}
@@ -849,9 +861,9 @@ export default function DashboardPage() {
                 )}
               </div>
 
-              {/* Zamestnankyňa */}
+              {/* Ateliér */}
               <div className="relative" ref={employeeDropdownRef}>
-                <label className="block font-bold mb-2 text-sm sm:text-base">Zamestnankyňa</label>
+                <label className="block font-bold mb-2 text-sm sm:text-base">Ateliér</label>
                 <div
                   onClick={(e) => {
                     e.stopPropagation()
@@ -862,7 +874,7 @@ export default function DashboardPage() {
                 >
                   <span>
                     {selectedEmployee === 'any' 
-                      ? 'Je mi jedno'
+                      ? 'Ateliér'
                       : employees.find(e => e.id === selectedEmployee)?.name}
                   </span>
                   <svg className="w-4 h-4 sm:w-5 sm:h-5 text-white flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -882,7 +894,7 @@ export default function DashboardPage() {
                         selectedEmployee === 'any' ? 'bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-white' : 'text-white'
                       }`}
                     >
-                      Je mi jedno
+                      Ateliér
                     </div>
                     {employees.map(emp => (
                       <div
@@ -942,7 +954,7 @@ export default function DashboardPage() {
             ) : availableSlots.length === 0 ? (
               <div className="text-center py-8 sm:py-12">
                 <p className="text-lg sm:text-xl font-bold mb-2 text-white">Žiadne voľné termíny</p>
-                <p className="text-gray-400 text-sm sm:text-base">Skúste iný deň alebo zamestnankyňu</p>
+                <p className="text-gray-400 text-sm sm:text-base">Skúste iný deň alebo ateliér</p>
               </div>
             ) : (
               <>
@@ -981,7 +993,7 @@ export default function DashboardPage() {
               <p><strong>Dátum:</strong> {new Date(selectedDate + 'T00:00:00').toLocaleDateString('sk-SK')}</p>
               <p><strong>Čas:</strong> {selectedSlot.time}</p>
               <p><strong>Služba:</strong> {selectedServiceData?.name} ({selectedServiceData?.price}€)</p>
-              <p><strong>Zamestnankyňa:</strong> {selectedSlot.employee_name}</p>
+              <p><strong>Ateliér:</strong> {selectedSlot.employee_name}</p>
             </div>
 
             <form onSubmit={handleBooking} className="space-y-3 sm:space-y-4">
