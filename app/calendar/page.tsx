@@ -131,7 +131,36 @@ export default function CalendarPage() {
       setNotification(prev => ({ ...prev, show: false }))
     }, 5000) // Zmizne po 5 sekundách
   }
-  
+
+  // Helper funkcia na odoslanie email notifikácií po vytvorení rezervácie
+  const sendReservationEmail = async (data: {
+    customer_name: string
+    customer_email: string
+    service_id: string | null
+    employee_id: string
+    reservation_date: string
+    reservation_time: string
+    status: string
+  }) => {
+    try {
+      const response = await fetch('/api/reservations/notify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      })
+      const result = await response.json()
+      if (result.skipped) {
+        console.log('Email notifikácia preskočená - žiadny email zákazníka')
+      } else if (result.success) {
+        console.log('Email notifikácie odoslané:', result.emailStatus)
+      } else {
+        console.error('Chyba pri odosielaní email notifikácie:', result.error)
+      }
+    } catch (error) {
+      console.error('Chyba pri volaní notify API:', error)
+    }
+  }
+
   // Confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{
     show: boolean
@@ -814,13 +843,23 @@ export default function CalendarPage() {
           email: 'neznamy@email.sk',
           phone: 'neuvedené'
         }]).select()
-        
+
         if (error) {
           console.error('Insert error:', error)
           showNotification('error', error.message, 'Chyba pri vytváraní')
         } else {
           console.log('Rezervácia vytvorená')
           showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
+          // Pošli email notifikáciu (drag & drop - zvyčajne nemá reálny email zákazníka)
+          sendReservationEmail({
+            customer_name: 'Neznámy Používateľ',
+            customer_email: 'neznamy@email.sk',
+            service_id: draggedItem.id,
+            employee_id: targetEmpId,
+            reservation_date: formatDateToString(selectedDate),
+            reservation_time: time + ':00',
+            status: 'confirmed'
+          })
         }
       } else {
         // Presun existujúcej rezervácie
@@ -1012,13 +1051,23 @@ export default function CalendarPage() {
         .from('reservations')
         // @ts-ignore
         .insert([{ ...reservationData, user_id: user?.id }])
-      
+
       if (error) {
         console.error('Create error:', error)
         showNotification('error', error.message, 'Chyba pri vytváraní')
       } else {
         console.log('Rezervácia vytvorená')
         showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
+        // Pošli email notifikáciu
+        sendReservationEmail({
+          customer_name: `${editForm.first_name} ${editForm.last_name}`.trim(),
+          customer_email: editForm.email,
+          service_id: editForm.service_id,
+          employee_id: editForm.employee_id,
+          reservation_date: editForm.reservation_date,
+          reservation_time: editForm.reservation_time + ':00',
+          status: 'confirmed'
+        })
         setShowEditModal(false)
         await fetchData()
       }
@@ -2033,7 +2082,7 @@ export default function CalendarPage() {
                             key={r.id}
                             onMouseDown={(e) => editable && handleMouseDown(e, r, emp.id)}
                             onClick={(e) => e.stopPropagation()}
-                            className={`absolute rounded-lg shadow-lg group transition-all select-none ${blockColor} text-white ${editable ? 'cursor-pointer hover:scale-105' : 'cursor-default'} overflow-hidden`}
+                            className={`absolute rounded-lg shadow-lg group transition-all select-none ${blockColor} text-white ${editable ? 'cursor-pointer hover:brightness-110 hover:shadow-xl hover:z-30' : 'cursor-default'} overflow-hidden`}
                             style={{ 
                               top: `${top}px`, 
                               height: `${height}px`,
@@ -2170,9 +2219,9 @@ export default function CalendarPage() {
                             )}
                             
                             {editable && (
-                              <button 
-                                onClick={(e) => {e.stopPropagation(); deleteRes(r.id, r)}} 
-                                className="absolute top-0.5 right-0.5 sm:top-1 sm:right-1 bg-red-600 w-4 h-4 sm:w-5 sm:h-5 rounded text-[9px] sm:text-[10px] lg:text-xs font-bold hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-10">
+                              <button
+                                onClick={(e) => {e.stopPropagation(); deleteRes(r.id, r)}}
+                                className="absolute top-0 right-0 bg-red-600 w-6 h-6 sm:w-7 sm:h-7 rounded-bl-lg rounded-tr-lg text-[11px] sm:text-sm font-bold hover:bg-red-700 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center z-20">
                                 ×
                               </button>
                             )}
@@ -2985,6 +3034,16 @@ export default function CalendarPage() {
                 if (error) throw error
 
                 showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
+                // Pošli email notifikáciu
+                sendReservationEmail({
+                  customer_name: bookingData.customer_name.trim(),
+                  customer_email: bookingData.customer_email.trim(),
+                  service_id: bookingData.service_id,
+                  employee_id: bookingData.employee_id,
+                  reservation_date: bookingData.reservation_date,
+                  reservation_time: bookingData.start_time + ':00',
+                  status: 'confirmed'
+                })
                 setShowBookingModal(false)
                 setBookingData({
                   service_id: '',

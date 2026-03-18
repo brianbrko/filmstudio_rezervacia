@@ -45,29 +45,43 @@ export default function ReservationsPage() {
       return
     }
 
-    const { error } = await supabase
-      .from('reservations')
-      .insert([{
-        ...formData,
-        service_id: selectedService,
-        status: 'pending'
-      }])
-
-    if (error) {
-      setMessage('Chyba pri vytváraní rezervácie: ' + error.message)
-    } else {
-      setMessage('Rezervácia bola úspešne vytvorená!')
-      setFormData({
-        customer_name: '',
-        customer_email: '',
-        customer_phone: '',
-        reservation_date: '',
-        reservation_time: '',
-        notes: ''
+    try {
+      const response = await fetch('/api/reservations/create-guest', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          customer_name: formData.customer_name,
+          customer_email: formData.customer_email,
+          customer_phone: formData.customer_phone,
+          service_id: selectedService,
+          reservation_date: formData.reservation_date,
+          reservation_time: formData.reservation_time,
+          notes: formData.notes,
+        }),
       })
-      setSelectedService('')
+
+      const data = await response.json()
+
+      if (!response.ok) {
+        setMessage('Chyba pri vytváraní rezervácie: ' + (data.error || 'Neznáma chyba'))
+      } else {
+        setMessage('Rezervácia bola úspešne vytvorená! Potvrdenie bolo poslané na váš email.')
+        setFormData({
+          customer_name: '',
+          customer_email: '',
+          customer_phone: '',
+          reservation_date: '',
+          reservation_time: '',
+          notes: ''
+        })
+        setSelectedService('')
+      }
+    } catch (error) {
+      setMessage('Chyba: ' + (error instanceof Error ? error.message : 'Neznáma chyba'))
     }
-    
+
     setLoading(false)
   }
 

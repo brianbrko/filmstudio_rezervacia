@@ -546,6 +546,24 @@ export default function DashboardPage() {
       }
     } else {
       showNotification('success', 'Rezervácia bola úspešne vytvorená', 'Úspech')
+      // Pošli email notifikáciu adminovi aj zákazníkovi
+      try {
+        await fetch('/api/reservations/notify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            customer_name: `${bookingForm.first_name} ${bookingForm.last_name}`.trim(),
+            customer_email: bookingForm.email,
+            service_id: selectedService,
+            employee_id: selectedSlot.employee_id,
+            reservation_date: selectedDate,
+            reservation_time: selectedSlot.time + ':00',
+            status: 'confirmed'
+          }),
+        })
+      } catch (emailErr) {
+        console.error('Chyba pri odosielaní email notifikácie:', emailErr)
+      }
       setShowBookingModal(false)
       fetchAvailableSlots()
     }
